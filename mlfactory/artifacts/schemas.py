@@ -56,10 +56,52 @@ class SavedDatasetArtifact(ArtifactBase):
     columns: list[SchemaColumn] = []
 
 
+TransformType = Literal[
+    "log_transform",
+    "one_hot",
+    "standard_scaler",
+    "target_encoding",
+    "date_parts",
+    "temporal_diff",
+    "drop_columns",
+    "impute",
+]
+
+
+class FeatureTransform(BaseModel):
+    """One entry in a feature-spec: a registry transform applied to inputs → output column(s)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    id: int
+    name: str
+    type: TransformType
+    inputs: list[str]
+    params: dict = {}
+    output_column: Optional[str] = None
+    output_columns: Optional[list[str]] = None
+
+
+class FeatureSpecArtifact(ArtifactBase):
+    """Stage-4 output — the deterministic transform recipe + its fit-on-train learned params.
+
+    ``fit_params`` records what each stateful transform learned on train (means, category sets,
+    target-encoding maps …) so the exact transform can be replayed and audited.
+    """
+
+    artifact: Literal["feature-spec"] = "feature-spec"
+    stage: int = 4
+    transforms: list[FeatureTransform]
+    fit_params: dict = {}
+    output: DatasetOutput
+    target_compatibility: list[dict] = []
+
+
 # Registry: artifact-type string -> its pydantic model. The lineage walker validates each node
 # against this; export_schemas emits one JSON-Schema per entry. Later stages append their models.
 ARTIFACT_MODELS: dict[str, type[ArtifactBase]] = {
     "saved-dataset": SavedDatasetArtifact,
+    "feature-spec": FeatureSpecArtifact,
 }
 
 

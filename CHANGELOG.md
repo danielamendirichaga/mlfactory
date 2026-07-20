@@ -2,6 +2,18 @@
 
 Append-only log of what changed and when. Newest first.
 
+## 2026-07-20 — #2 Standalone engineer-features stage (transform registry)
+- Added the Stage-4 feature-engineering compute: a closed 8-transform registry
+  (`compute/engineer_transforms.py`: drop_columns / log_transform / standard_scaler / one_hot /
+  impute / date_parts / temporal_diff / target_encoding) as fit/apply/apply_train pairs, with the
+  fit-on-train / apply-outward leakage-safe invariant (target_encoding CV-folded on train, full-train
+  map on val/test).
+- `compute/engineer.py`: `engineer_features` threads the split frames, serializes learned fit-params,
+  and enforces the model-ready postcondition (produced columns numeric/boolean, no nulls/NaN/inf).
+- New `feature-spec` stage artifact (registered in `ARTIFACT_MODELS`) + the `engineer-features` CLI
+  (emits the artifact, which validates via `validate-artifact --probe-output`).
+- +10 tests (198 total green); ruff + mypy clean. (Closes #2)
+
 ## 2026-07-20 — #1 Heavy contract tier + validate-artifact (L2 spine)
 - Upgraded `ArtifactBase` to the heavy tier (backward-compatible): a lineage `parent` pointer +
   `Verification` block + stage/version/caveats/backtrack_signals; **markdown-with-frontmatter**
