@@ -920,5 +920,56 @@ def run(
     typer.echo(f"\n✔ done — model + artifacts + report in {out_dir}/  (open {out_dir}/report.html)")
 
 
+@app.command("validate-artifact")
+def validate_artifact_cmd(
+    path: Path = typer.Argument(..., help="Artifact .md file to validate."),
+    walk_lineage: bool = typer.Option(
+        False, "--walk-lineage", help="Walk the parent lineage chain (sha + schema + status)."
+    ),
+    probe_output: bool = typer.Option(
+        False, "--probe-output", help="Probe the declared on-disk output (rows + schema_hash)."
+    ),
+) -> None:
+    """Validate an artifact: frontmatter schema + optional lineage walk + output probe (exit 1 on fail)."""
+    from mlfactory.artifacts.validate import ValidationFailure, validate_artifact
+
+    try:
+        result = validate_artifact(path, walk_lineage=walk_lineage, probe_output=probe_output)
+    except ValidationFailure as exc:
+        typer.echo(f"✗ INVALID [{exc.code}] {exc.message}", err=True)
+        raise typer.Exit(code=1) from exc
+    except Exception as exc:  # noqa: BLE001 — CLI boundary: any parse/schema error is a clean failure
+        typer.echo(f"✗ INVALID {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+    checks = (
+        "schema" + (" + lineage" if walk_lineage else "") + (" + probe" if probe_output else "")
+    )
+    typer.echo(f"✔ {result['artifact']} valid ({checks}) — {path}")
+
+
+@app.command("export-schemas")
+def export_schemas_cmd(
+    output_dir: Path = typer.Option(
+        Path("schemas"), "--output-dir", help="Directory to write JSON-Schema into."
+    ),
+    check: bool = typer.Option(
+        False, "--check", help="Verify on-disk schemas match the source; exit 1 on drift."
+    ),
+) -> None:
+    """Emit JSON-Schema for every registered artifact model (or --check them for drift)."""
+    from mlfactory.artifacts.schemas import ARTIFACT_MODELS, export_schemas
+
+    drifted = export_schemas(output_dir, check=check)
+    if check:
+        if drifted:
+            typer.echo(
+                f"✗ schema drift: {', '.join(drifted)} — run export-schemas to regenerate", err=True
+            )
+            raise typer.Exit(code=1)
+        typer.echo("✔ schemas in sync")
+    else:
+        typer.echo(f"Wrote {len(ARTIFACT_MODELS)} artifact schema(s) → {output_dir}")
+
+
 if __name__ == "__main__":  # pragma: no cover
     app()
