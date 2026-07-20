@@ -971,5 +971,79 @@ def export_schemas_cmd(
         typer.echo(f"Wrote {len(ARTIFACT_MODELS)} artifact schema(s) → {output_dir}")
 
 
+@app.command("engineer-features")
+def engineer_features_cmd(
+    train: Path = typer.Option(
+        ..., "--train", help="Train parquet (transforms are fit on this split)."
+    ),
+    spec: Path = typer.Option(
+        ..., "--spec", help="Transforms YAML: {transforms: [ {id,name,type,inputs,...} ]}."
+    ),
+    output_dir: Path = typer.Option(
+        Path("data/features"),
+        "--output-dir",
+        help="Where to write engineered splits + feature-spec.",
+    ),
+    val: Optional[Path] = typer.Option(None, "--val", help="Optional val parquet."),
+    test: Optional[Path] = typer.Option(None, "--test", help="Optional test parquet."),
+) -> None:
+    """Engineer features (fit-on-train / apply-outward) and emit a feature-spec artifact."""
+    import pandas as pd
+    import yaml
+
+    from mlfactory.artifacts.base import content_hash
+    from mlfactory.artifacts.schemas import FeatureTransform
+    from mlfactory.compute.engineer import (
+        FeatureEngineeringError,
+        build_feature_spec,
+        engineer_features,
+    )
+
+    raw = yaml.safe_load(spec.read_text()) or {}
+    try:
+        transforms = [FeatureTransform.model_validate(t) for t in raw.get("transforms", [])]
+    except Exception as exc:  # noqa: BLE001 — surface a bad spec as a clean error
+        typer.echo(f"invalid feature spec: {exc}")
+        raise typer.Exit(code=1) from exc
+
+    tr = pd.read_parquet(train)
+    va = pd.read_parquet(val) if val is not None else None
+    te = pd.read_parquet(test) if test is not None else None
+    try:
+        frames, fit_params, produced = engineer_features(transforms, tr, val=va, test=te)
+    except FeatureEngineeringError as exc:
+        typer.echo(f"✗ {exc}")
+        raise typer.Exit(code=1) from exc
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    train_out = frames["train"]
+    assert train_out is not None  # engineer_features always returns a train frame
+    train_out.to_parquet(output_dir / "train.parquet", index=False)
+    for split in ("val", "test"):
+        frame = frames[split]
+        if frame is not None:
+            frame.to_parquet(output_dir / f"{split}.parquet", index=False)
+    # declare the schema of what actually landed on disk (parquet round-trip is the source of truth)
+    written_train = pd.read_parquet(output_dir / "train.parquet")
+    artifact = build_feature_spec(
+        transforms,
+        written_train,
+        fit_params,
+        output_path="train.parquet",
+        parent_sha256=content_hash(tr),
+    )
+    artifact.write_markdown(output_dir / "feature-spec.md")
+
+    typer.echo(
+        f"Engineered {len(transforms)} transform(s) on {len(tr):,} train rows → {output_dir}"
+    )
+    more = " …" if len(produced) > 8 else ""
+    typer.echo(f"  produced {len(produced)} feature column(s): {', '.join(produced[:8])}{more}")
+    typer.echo(
+        f"  feature-spec.md written — validate with: "
+        f"mlfactory validate-artifact {output_dir}/feature-spec.md --probe-output"
+    )
+
+
 if __name__ == "__main__":  # pragma: no cover
     app()
