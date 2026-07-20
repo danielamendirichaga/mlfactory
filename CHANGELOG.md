@@ -2,6 +2,16 @@
 
 Append-only log of what changed and when. Newest first.
 
+## 2026-07-20 — #3 CLI tool surface (--json, gen-model-card) + PRD/ADRs
+- Added `gen-model-card` (`mlfactory/model_card.py` + CLI) — renders an 8-section markdown model card
+  (Purpose / Training Data / Features / Performance / Calibration / Slices / Limitations / Lineage)
+  from the model + eval artifacts; the DS go/no-go surface.
+- Added `--json` machine output to `train` and `engineer-features` (structured stdout summary; the
+  human leakage warning is suppressed under `--json`) — the tool surface subagents will shell out to.
+- Wrote `docs/PRD.md` + `docs/ADRs.md` for mlfactory — reversing churnpilot ADR-001 (single→multi-agent)
+  and ADR-009 (medium→heavy contract tier).
+- +5 tests (203 total green); ruff + mypy clean. MVP deterministic core (#1–#3) complete. (Closes #3)
+
 ## 2026-07-20 — #2 Standalone engineer-features stage (transform registry)
 - Added the Stage-4 feature-engineering compute: a closed 8-transform registry
   (`compute/engineer_transforms.py`: drop_columns / log_transform / standard_scaler / one_hot /

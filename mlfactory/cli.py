@@ -256,6 +256,7 @@ def train(
         False, "--early-stopping", help="XGBoost early stopping (mode-aware inner-val)."
     ),
     seed: int = typer.Option(42, "--seed", help="RNG seed."),
+    json_out: bool = typer.Option(False, "--json", help="Emit a machine-readable JSON summary."),
 ) -> None:
     """Fit a model from the menu (leakage-safe) and report it against the baseline floor."""
     import pandas as pd
@@ -277,7 +278,7 @@ def train(
     leaky = [
         (c, v) for c, v in high_corr_features(profile_frame(df, cfg), threshold=0.6) if c in used
     ]
-    if leaky:
+    if leaky and not json_out:
         hits = ", ".join(f"{c} (|corr|={abs(v):.2f})" for c, v in leaky)
         typer.echo(f"⚠ possible leakage in features: {hits} — consider excluding it.\n")
 
@@ -311,6 +312,22 @@ def train(
         if on
     )
     tm, bm = card.train_metrics, card.baseline_metrics
+    if json_out:
+        import json
+
+        typer.echo(
+            json.dumps(
+                {
+                    "command": "train",
+                    "model": model,
+                    "model_out": str(model_out),
+                    "n_features": card.n_features,
+                    "train_metrics": tm,
+                    "baseline_metrics": bm,
+                }
+            )
+        )
+        return
     typer.echo(
         f"Trained {model}{tags} on {len(df):,} rows ({card.n_features} features) → {model_out}"
     )
@@ -986,6 +1003,7 @@ def engineer_features_cmd(
     ),
     val: Optional[Path] = typer.Option(None, "--val", help="Optional val parquet."),
     test: Optional[Path] = typer.Option(None, "--test", help="Optional test parquet."),
+    json_out: bool = typer.Option(False, "--json", help="Emit a machine-readable JSON summary."),
 ) -> None:
     """Engineer features (fit-on-train / apply-outward) and emit a feature-spec artifact."""
     import pandas as pd
@@ -1034,6 +1052,22 @@ def engineer_features_cmd(
     )
     artifact.write_markdown(output_dir / "feature-spec.md")
 
+    if json_out:
+        import json
+
+        typer.echo(
+            json.dumps(
+                {
+                    "command": "engineer-features",
+                    "output_dir": str(output_dir),
+                    "n_transforms": len(transforms),
+                    "train_rows": len(tr),
+                    "produced": produced,
+                    "feature_spec": str(output_dir / "feature-spec.md"),
+                }
+            )
+        )
+        return
     typer.echo(
         f"Engineered {len(transforms)} transform(s) on {len(tr):,} train rows → {output_dir}"
     )
@@ -1043,6 +1077,33 @@ def engineer_features_cmd(
         f"  feature-spec.md written — validate with: "
         f"mlfactory validate-artifact {output_dir}/feature-spec.md --probe-output"
     )
+
+
+@app.command("gen-model-card")
+def gen_model_card_cmd(
+    card: Path = typer.Option(..., "--card", help="model.card.json (from train)."),
+    eval_report: Path = typer.Option(
+        None, "--eval", help="Optional eval-report.json (from evaluate)."
+    ),
+    output: Path = typer.Option(
+        Path("model-card.md"), "--output", help="Where to write the markdown card."
+    ),
+    target: str = typer.Option(
+        "churn_next_30d", "--target", help="Target column (for the narrative)."
+    ),
+) -> None:
+    """Render a markdown model card from the model + eval artifacts (the DS go/no-go surface)."""
+    import json
+
+    from mlfactory.model_card import gen_model_card
+
+    mc = json.loads(card.read_text())
+    ev = json.loads(eval_report.read_text()) if eval_report is not None else None
+    md = gen_model_card(mc, ev, target=target)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(md)
+    sections = [ln[3:] for ln in md.splitlines() if ln.startswith("## ")]
+    typer.echo(f"Wrote model card → {output}  ({len(sections)} sections: {', '.join(sections)})")
 
 
 if __name__ == "__main__":  # pragma: no cover
