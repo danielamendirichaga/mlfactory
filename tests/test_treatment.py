@@ -75,8 +75,12 @@ def test_ate_matches_true_uplift_and_is_positive(panel_t):
     assert ate > 0  # on net, offers reduce churn (persuadables outweigh sleeping dogs)
 
 
-# --- oracle columns can never become features ---------------------------- #
-def test_oracle_and_treatment_cols_excluded_from_features(panel_t):
+# --- oracle columns can never become features (config-driven, generic core) ---- #
+def test_oracle_and_treatment_cols_excluded_via_config(panel_t):
+    """The generic core drops only what the config's `exclude_columns` declares — the SaaS
+    domain lists its oracle + treatment ground-truth columns there, so the core hardcodes no
+    domain column names."""
+    oracle = ["treated", "true_uplift", "churn_if_control", "churn_if_treated"]
     cfg = ChurnConfig.model_validate(
         {
             "source": {"kind": "synthetic"},
@@ -86,10 +90,17 @@ def test_oracle_and_treatment_cols_excluded_from_features(panel_t):
                 "date_col": "observation_month",
                 "value_col": "cltv",
                 "features": "auto",
+                "exclude_columns": oracle,
             },
         }
     )
     numeric, categorical = feature_columns(panel_t, cfg)
     feats = set(numeric) | set(categorical)
-    for leak in ("treated", "true_uplift", "churn_if_control", "churn_if_treated"):
+    for leak in oracle:
         assert leak not in feats
+    # Without the declaration the generic core has no domain knowledge to drop them —
+    # proving the exclusion is config-driven, not hardcoded.
+    bare = cfg.model_copy(deep=True)
+    bare.columns.exclude_columns = []
+    feats_bare = set(feature_columns(panel_t, bare)[0]) | set(feature_columns(panel_t, bare)[1])
+    assert "treated" in feats_bare

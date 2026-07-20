@@ -23,7 +23,7 @@ from sklearn.pipeline import Pipeline as SkPipeline
 
 from .artifacts import ArtifactBase, content_hash
 from .config import ChurnConfig
-from .generate import TREATMENT_COL
+from .generate import ORACLE_COLS, TREATMENT_COL
 from .model import MODELS, _estimator, _preprocessor, feature_columns
 
 UPLIFT_LEARNERS = ("s", "t")
@@ -123,6 +123,12 @@ def train_uplift(
             f"uplift needs a {TREATMENT_COL!r} column — generate with `--treatment` (a randomized A/B test)"
         )
 
+    # A/B ground-truth columns must never be features (defensive for `features: auto` panels);
+    # the uplift model stays self-consistent because it stores its fitted feature set.
+    config = config.model_copy(deep=True)
+    config.columns.exclude_columns = sorted(
+        set(config.columns.exclude_columns) | {TREATMENT_COL, *ORACLE_COLS}
+    )
     model = UpliftModel(learner, base_model, seed).fit(df, config)
     tau_hat = model.predict_uplift(df)
     treated = df[TREATMENT_COL].to_numpy()

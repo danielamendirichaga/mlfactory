@@ -54,7 +54,10 @@ class ColumnMap(BaseModel):
 
     ``date_col`` is optional: present → panel path (time-aware split + drift monitoring);
     absent → single-snapshot path (drift/time-split skip gracefully). ``features='auto'``
-    means "use every column except the id/date/target/value columns".
+    means "use every column except the id/date/target/value columns". ``exclude_columns``
+    lists columns that must NEVER be used as features (leakage / experiment ground-truth /
+    counterfactual oracle columns); the *domain* declares them, so the generic core hardcodes
+    no domain column names.
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -65,6 +68,7 @@ class ColumnMap(BaseModel):
     date_col: str | None = None
     value_col: str | None = None
     features: list[str] | Literal["auto"] = "auto"
+    exclude_columns: list[str] = []
 
 
 class ChurnConfig(BaseModel):
@@ -118,4 +122,6 @@ schema:
   date_col: observation_month  # optional; enables time-aware split + drift. Omit for snapshot data.
   value_col: cltv              # optional; customer value for the policy simulator
   features: auto               # "auto" = all other columns, or a list: [tenure_months, product_usage_hours_30d]
+  # exclude_columns: []        # never-features (leakage / A/B oracle cols, e.g. on a
+  #   `generate --treatment` panel: [treated, true_uplift, churn_if_control, churn_if_treated])
 """
