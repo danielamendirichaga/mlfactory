@@ -2,6 +2,16 @@
 
 Append-only log of what changed and when. Newest first.
 
+## 2026-07-20 — #1 Heavy contract tier + validate-artifact (L2 spine)
+- Upgraded `ArtifactBase` to the heavy tier (backward-compatible): a lineage `parent` pointer +
+  `Verification` block + stage/version/caveats/backtrack_signals; **markdown-with-frontmatter**
+  serialization (`to_markdown`/`from_markdown`) alongside `write_json`; `schema_hash` + `file_sha256`.
+- Added `validate-artifact` — the lineage walker (cycle → existence → sha256 → schema → parent-type
+  → verification-status) + on-disk output probe (rows + schema_hash) — and `export-schemas` (+`--check`).
+- First heavy stage artifact `SavedDatasetArtifact` (the input contract) + an `ARTIFACT_MODELS`
+  registry; `artifacts.py` promoted to a package. CLI: `validate-artifact`, `export-schemas`.
+- +20 tests (188 total green); ruff + mypy clean. (Closes #1)
+
 ## 2026-07-20 — Way of working established (GitHub + keystone files)
 - Created private GitHub repo `danielamendirichaga/mlfactory`, pushed `main` (4 commits).
 - Seeded the roadmap as GitHub issues #1–#6 (labels `mvp-core` / `epic`); #1 (heavy contract tier)
