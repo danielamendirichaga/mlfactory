@@ -16,7 +16,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from .config import ChurnConfig
+from mlfactory.config import ChurnConfig
 
 __all__ = ["profile_frame", "infer_role", "high_corr_features"]
 

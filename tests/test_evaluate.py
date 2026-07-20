@@ -5,9 +5,9 @@ from __future__ import annotations
 import pytest
 
 from mlfactory.config import ChurnConfig
-from mlfactory.evaluate import EvalReport, evaluate_model
-from mlfactory.generate import make_panel
-from mlfactory.model import train_model
+from mlfactory.compute.evaluate import EvalReport, evaluate_model
+from mlfactory.domains.saas.generate import make_panel
+from mlfactory.compute.model import train_model
 
 FEATURES = [
     "tenure_months",

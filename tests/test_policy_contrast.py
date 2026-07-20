@@ -5,10 +5,10 @@ from __future__ import annotations
 import pytest
 
 from mlfactory.config import ChurnConfig
-from mlfactory.generate import make_panel
-from mlfactory.model import train_model
-from mlfactory.policy import PolicyContrast, PolicyError, contrast_policies
-from mlfactory.uplift import train_uplift
+from mlfactory.domains.saas.generate import make_panel
+from mlfactory.compute.model import train_model
+from mlfactory.domains.saas.policy import PolicyContrast, PolicyError, contrast_policies
+from mlfactory.domains.saas.uplift import train_uplift
 
 FEATURES = [
     "tenure_months",

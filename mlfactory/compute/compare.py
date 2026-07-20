@@ -13,9 +13,9 @@ from __future__ import annotations
 
 import pandas as pd
 
-from . import metrics as m
-from .config import ChurnConfig
-from .model import MODELS, feature_columns, train_model
+from mlfactory.compute import metrics as m
+from mlfactory.config import ChurnConfig
+from mlfactory.compute.model import MODELS, feature_columns, train_model
 
 # Stability gate (the credit-risk convention): small AUC drop + a stable score distribution.
 _MAX_AUC_DROP = 0.05

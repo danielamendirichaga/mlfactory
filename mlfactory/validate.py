@@ -18,8 +18,8 @@ from typing import Literal
 
 import pandas as pd
 
-from .config import ChurnConfig
-from .generate import TREATMENT_COL
+from mlfactory.config import ChurnConfig
+from mlfactory.domains.saas.generate import TREATMENT_COL
 
 Status = Literal["pass", "warn", "fail"]
 _SYMBOL: dict[Status, str] = {"pass": "✔", "warn": "⚠", "fail": "✗"}

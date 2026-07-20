@@ -25,9 +25,9 @@ from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline as SkPipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
-from . import metrics as m
-from .artifacts import ArtifactBase, content_hash
-from .config import ChurnConfig
+from mlfactory.compute import metrics as m
+from mlfactory.artifacts import ArtifactBase, content_hash
+from mlfactory.config import ChurnConfig
 
 MODELS = ("logistic", "tree", "rf", "xgboost")
 _HP_KEYS = {

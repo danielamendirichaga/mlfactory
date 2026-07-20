@@ -12,8 +12,8 @@ import pandas as pd
 import pytest
 
 from mlfactory.config import ChurnConfig
-from mlfactory.generate import make_panel
-from mlfactory.model import feature_columns
+from mlfactory.domains.saas.generate import make_panel
+from mlfactory.compute.model import feature_columns
 
 
 @pytest.fixture(scope="module")

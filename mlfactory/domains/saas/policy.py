@@ -23,9 +23,9 @@ from typing import Any, Literal, Optional
 import numpy as np
 import pandas as pd
 
-from .artifacts import ArtifactBase, content_hash
-from .config import ChurnConfig
-from .model import feature_columns
+from mlfactory.artifacts import ArtifactBase, content_hash
+from mlfactory.config import ChurnConfig
+from mlfactory.compute.model import feature_columns
 
 
 class PolicyError(ValueError):

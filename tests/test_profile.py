@@ -6,8 +6,8 @@ import pandas as pd
 import pytest
 
 from mlfactory.config import ChurnConfig
-from mlfactory.generate import make_panel
-from mlfactory.profile import high_corr_features, infer_role, profile_frame
+from mlfactory.domains.saas.generate import make_panel
+from mlfactory.compute.profile import high_corr_features, infer_role, profile_frame
 
 SYNTH_SCHEMA = {
     "id_col": "account_id",

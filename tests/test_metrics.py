@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from mlfactory.metrics import (
+from mlfactory.compute.metrics import (
     average_precision,
     calibration_table,
     expected_calibration_error,

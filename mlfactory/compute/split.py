@@ -21,8 +21,8 @@ import pandas as pd
 from pydantic import BaseModel, ConfigDict
 from typing import Literal, Optional
 
-from .artifacts import ArtifactBase, content_hash
-from .config import ChurnConfig
+from mlfactory.artifacts import ArtifactBase, content_hash
+from mlfactory.config import ChurnConfig
 
 
 class SplitError(ValueError):

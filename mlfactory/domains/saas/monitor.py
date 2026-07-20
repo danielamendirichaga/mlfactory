@@ -13,10 +13,10 @@ from typing import Literal, Optional
 
 import pandas as pd
 
-from . import metrics as m
-from .artifacts import ArtifactBase, content_hash
-from .config import ChurnConfig
-from .model import feature_columns
+from mlfactory.compute import metrics as m
+from mlfactory.artifacts import ArtifactBase, content_hash
+from mlfactory.config import ChurnConfig
+from mlfactory.compute.model import feature_columns
 
 _MODERATE, _MAJOR = 0.1, 0.25
 

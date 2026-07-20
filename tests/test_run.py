@@ -5,7 +5,7 @@ from __future__ import annotations
 from typer.testing import CliRunner
 
 from mlfactory.cli import app
-from mlfactory.generate import make_panel
+from mlfactory.domains.saas.generate import make_panel
 
 runner = CliRunner()
 

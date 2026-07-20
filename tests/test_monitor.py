@@ -5,8 +5,8 @@ from __future__ import annotations
 import pytest
 
 from mlfactory.config import ChurnConfig
-from mlfactory.generate import make_panel
-from mlfactory.monitor import DriftReport, monitor_drift
+from mlfactory.domains.saas.generate import make_panel
+from mlfactory.domains.saas.monitor import DriftReport, monitor_drift
 
 PANEL_SCHEMA = {
     "id_col": "account_id",

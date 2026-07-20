@@ -7,13 +7,13 @@ report with the uplift section, asserting every v2 artifact + that uplift beats 
 from __future__ import annotations
 
 from mlfactory.config import ChurnConfig
-from mlfactory.evaluate import evaluate_model
-from mlfactory.generate import make_panel
-from mlfactory.model import train_model
-from mlfactory.policy import contrast_policies
-from mlfactory.qini import evaluate_uplift
+from mlfactory.compute.evaluate import evaluate_model
+from mlfactory.domains.saas.generate import make_panel
+from mlfactory.compute.model import train_model
+from mlfactory.domains.saas.policy import contrast_policies
+from mlfactory.domains.saas.qini import evaluate_uplift
 from mlfactory.report import build_html
-from mlfactory.uplift import train_uplift
+from mlfactory.domains.saas.uplift import train_uplift
 
 SCHEMA = {
     "id_col": "account_id",

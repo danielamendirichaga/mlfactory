@@ -21,10 +21,10 @@ import numpy as np
 import pandas as pd
 from sklearn.pipeline import Pipeline as SkPipeline
 
-from .artifacts import ArtifactBase, content_hash
-from .config import ChurnConfig
-from .generate import ORACLE_COLS, TREATMENT_COL
-from .model import MODELS, _estimator, _preprocessor, feature_columns
+from mlfactory.artifacts import ArtifactBase, content_hash
+from mlfactory.config import ChurnConfig
+from mlfactory.domains.saas.generate import ORACLE_COLS, TREATMENT_COL
+from mlfactory.compute.model import MODELS, _estimator, _preprocessor, feature_columns
 
 UPLIFT_LEARNERS = ("s", "t")
 

@@ -13,8 +13,8 @@ from typing import Optional
 
 import typer
 
-from . import __version__
-from .config import CONFIG_TEMPLATE
+from mlfactory import __version__
+from mlfactory.config import CONFIG_TEMPLATE
 
 app = typer.Typer(
     add_completion=False,
@@ -67,7 +67,7 @@ def generate(
     ),
 ) -> None:
     """Generate the deterministic synthetic SaaS churn panel (no real data)."""
-    from .generate import make_panel, summarize
+    from mlfactory.domains.saas.generate import make_panel, summarize
 
     df = make_panel(n_accounts=accounts, n_months=months, seed=seed, treatment=treatment)
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -78,8 +78,8 @@ def generate(
 
 def _load(config_path: Path):
     """Load config + data for a command, exiting cleanly (no traceback) on failure."""
-    from .config import ConfigError, load_config
-    from .source import SourceError, load_data
+    from mlfactory.config import ConfigError, load_config
+    from mlfactory.source import SourceError, load_data
 
     try:
         cfg = load_config(config_path)
@@ -101,7 +101,7 @@ def validate(
     ),
 ) -> None:
     """Check that the configured dataset is usable by mlfactory (fails gracefully)."""
-    from .validate import validate as run_validate
+    from mlfactory.validate import validate as run_validate
 
     cfg, df = _load(config)
     report = run_validate(df, cfg)
@@ -119,7 +119,7 @@ def profile(
     """Profile every column of the configured dataset (EDA numbers)."""
     import pandas as pd
 
-    from .profile import high_corr_features, profile_frame
+    from mlfactory.compute.profile import high_corr_features, profile_frame
 
     cfg, df = _load(config)
     records = profile_frame(df, cfg)
@@ -168,7 +168,7 @@ def metrics(
     """Report discrimination/targeting metrics for a score column vs. the target."""
     import pandas as pd
 
-    from . import metrics as m
+    from mlfactory.compute import metrics as m
 
     cfg, df = _load(config)
     label = cfg.columns.target_col
@@ -210,7 +210,7 @@ def split(
     seed: int = typer.Option(42, "--seed", help="RNG seed (grouped/random)."),
 ) -> None:
     """Split into train/val/test with a leakage guard; writes parquets + a split-manifest."""
-    from .split import SplitError, split_dataset
+    from mlfactory.compute.split import SplitError, split_dataset
 
     cfg, df = _load(config)
     try:
@@ -260,9 +260,9 @@ def train(
     """Fit a model from the menu (leakage-safe) and report it against the baseline floor."""
     import pandas as pd
 
-    from .config import ConfigError, load_config
-    from .model import ModelError, feature_columns, save_model, train_model
-    from .profile import high_corr_features, profile_frame
+    from mlfactory.config import ConfigError, load_config
+    from mlfactory.compute.model import ModelError, feature_columns, save_model, train_model
+    from mlfactory.compute.profile import high_corr_features, profile_frame
 
     try:
         cfg = load_config(config)
@@ -335,9 +335,9 @@ def compare(
     """Fit the model shortlist and rank on held-out performance AND stability."""
     import pandas as pd
 
-    from .compare import compare_models
-    from .config import ConfigError, load_config
-    from .model import MODELS, ModelError
+    from mlfactory.compute.compare import compare_models
+    from mlfactory.config import ConfigError, load_config
+    from mlfactory.compute.model import MODELS, ModelError
 
     try:
         cfg = load_config(config)
@@ -396,9 +396,9 @@ def evaluate(
     """Evaluate a saved model on held-out data — the full metric pack + per-segment + drift."""
     import pandas as pd
 
-    from .config import ConfigError, load_config
-    from .evaluate import evaluate_model
-    from .model import load_model
+    from mlfactory.config import ConfigError, load_config
+    from mlfactory.compute.evaluate import evaluate_model
+    from mlfactory.compute.model import load_model
 
     try:
         cfg = load_config(config)
@@ -463,9 +463,9 @@ def simulate_policy_cmd(
     """Cost-based retention targeting: whom to save under a budget, and the ROI."""
     import pandas as pd
 
-    from .config import ConfigError, load_config
-    from .model import load_model
-    from .policy import PolicyError, simulate_policy
+    from mlfactory.config import ConfigError, load_config
+    from mlfactory.compute.model import load_model
+    from mlfactory.domains.saas.policy import PolicyError, simulate_policy
 
     try:
         cfg = load_config(config)
@@ -540,7 +540,7 @@ def report(
     """Render a shareable, self-contained HTML report from the pipeline artifacts."""
     import json
 
-    from .report import build_html
+    from mlfactory.report import build_html
 
     ev = json.loads(eval_report.read_text())
     pol = json.loads(policy.read_text()) if policy is not None else None
@@ -565,7 +565,7 @@ def monitor(
     ),
 ) -> None:
     """Monitor per-feature drift across cohorts and recommend a retrain (never auto-retrains)."""
-    from .monitor import monitor_drift
+    from mlfactory.domains.saas.monitor import monitor_drift
 
     cfg, df = _load(config)
     report = monitor_drift(df, cfg, threshold=threshold)
@@ -613,8 +613,8 @@ def train_uplift_cmd(
     """Fit an uplift meta-learner (target persuadables) on a randomized A/B panel."""
     import pandas as pd
 
-    from .config import ConfigError, load_config
-    from .uplift import UpliftError, save_uplift, train_uplift
+    from mlfactory.config import ConfigError, load_config
+    from mlfactory.domains.saas.uplift import UpliftError, save_uplift, train_uplift
 
     try:
         cfg = load_config(config)
@@ -660,9 +660,9 @@ def uplift_eval_cmd(
     """Evaluate an uplift model: Qini coefficient, Qini curve, and uplift-by-decile."""
     import pandas as pd
 
-    from .config import ConfigError, load_config
-    from .qini import QiniError, evaluate_uplift
-    from .uplift import load_uplift
+    from mlfactory.config import ConfigError, load_config
+    from mlfactory.domains.saas.qini import QiniError, evaluate_uplift
+    from mlfactory.domains.saas.uplift import load_uplift
 
     try:
         cfg = load_config(config)
@@ -715,10 +715,10 @@ def policy_contrast_cmd(
     """Head-to-head: target by risk vs by uplift at one budget, scored on the true effect."""
     import pandas as pd
 
-    from .config import ConfigError, load_config
-    from .model import load_model
-    from .policy import PolicyError, contrast_policies
-    from .uplift import load_uplift
+    from mlfactory.config import ConfigError, load_config
+    from mlfactory.compute.model import load_model
+    from mlfactory.domains.saas.policy import PolicyError, contrast_policies
+    from mlfactory.domains.saas.uplift import load_uplift
 
     try:
         cfg = load_config(config)
@@ -781,8 +781,8 @@ def advise(
     ),
 ) -> None:
     """Print the copilot's pre-flight recommendations (features, split, policy) for your data."""
-    from .profile import profile_frame
-    from .recommend import (
+    from mlfactory.compute.profile import profile_frame
+    from mlfactory.recommend import (
         recommend_experiment,
         recommend_features,
         recommend_policy,
@@ -822,20 +822,20 @@ def run(
     seed: int = typer.Option(42, "--seed", help="RNG seed."),
 ) -> None:
     """Interactive copilot — walk the pipeline, pausing at each gate to confirm or override."""
-    from .compare import compare_models
-    from .evaluate import evaluate_model
-    from .model import MODELS, feature_columns, save_model, train_model
-    from .policy import simulate_policy
-    from .profile import profile_frame
-    from .recommend import (
+    from mlfactory.compute.compare import compare_models
+    from mlfactory.compute.evaluate import evaluate_model
+    from mlfactory.compute.model import MODELS, feature_columns, save_model, train_model
+    from mlfactory.domains.saas.policy import simulate_policy
+    from mlfactory.compute.profile import profile_frame
+    from mlfactory.recommend import (
         recommend_features,
         recommend_model,
         recommend_policy,
         recommend_ship,
         recommend_split,
     )
-    from .report import build_html
-    from .split import split_dataset
+    from mlfactory.report import build_html
+    from mlfactory.compute.split import split_dataset
 
     def show(rec) -> None:
         typer.echo(f"\n▸ [{rec.gate}] {rec.recommendation}")

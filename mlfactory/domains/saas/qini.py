@@ -16,10 +16,10 @@ from typing import Literal, Optional
 import numpy as np
 import pandas as pd
 
-from .artifacts import ArtifactBase, content_hash
-from .config import ChurnConfig
-from .generate import TREATMENT_COL
-from .uplift import UpliftModel
+from mlfactory.artifacts import ArtifactBase, content_hash
+from mlfactory.config import ChurnConfig
+from mlfactory.domains.saas.generate import TREATMENT_COL
+from mlfactory.domains.saas.uplift import UpliftModel
 
 
 class QiniError(ValueError):

@@ -13,9 +13,9 @@ from __future__ import annotations
 import pandas as pd
 from pydantic import BaseModel
 
-from .config import ChurnConfig
-from .generate import TREATMENT_COL
-from .profile import high_corr_features
+from mlfactory.config import ChurnConfig
+from mlfactory.domains.saas.generate import TREATMENT_COL
+from mlfactory.compute.profile import high_corr_features
 
 
 class Recommendation(BaseModel):

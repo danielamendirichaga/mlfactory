@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import pytest
 
-from mlfactory.compare import compare_models
+from mlfactory.compute.compare import compare_models
 from mlfactory.config import ChurnConfig
-from mlfactory.generate import make_panel
+from mlfactory.domains.saas.generate import make_panel
 
 FEATURES = [
     "tenure_months",

@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import base64
 
-from . import charts
+from mlfactory import charts
 
 _CSS = """
 :root{--surface:#fcfcfb;--plane:#f9f9f7;--ink:#0b0b0b;--ink2:#52514e;--muted:#898781;

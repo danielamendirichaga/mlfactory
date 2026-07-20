@@ -15,7 +15,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from .config import ChurnConfig, SourceConfig
+from mlfactory.config import ChurnConfig, SourceConfig
 
 
 class SourceError(RuntimeError):
@@ -26,7 +26,7 @@ def load_data(config: ChurnConfig) -> pd.DataFrame:
     """Load the dataset described by ``config.source``, coercing numeric-looking text columns."""
     src = config.source
     if src.kind == "synthetic":
-        from .generate import make_panel
+        from mlfactory.domains.saas.generate import make_panel
 
         df = make_panel()
     elif src.kind == "file":

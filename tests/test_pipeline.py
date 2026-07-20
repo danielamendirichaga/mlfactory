@@ -6,15 +6,15 @@ exercised through the module functions on tiny synthetic data.
 
 from __future__ import annotations
 
-from mlfactory.compare import compare_models
+from mlfactory.compute.compare import compare_models
 from mlfactory.config import ChurnConfig
-from mlfactory.evaluate import evaluate_model
-from mlfactory.generate import make_panel
-from mlfactory.model import load_model, save_model, train_model
-from mlfactory.monitor import monitor_drift
-from mlfactory.policy import simulate_policy
+from mlfactory.compute.evaluate import evaluate_model
+from mlfactory.domains.saas.generate import make_panel
+from mlfactory.compute.model import load_model, save_model, train_model
+from mlfactory.domains.saas.monitor import monitor_drift
+from mlfactory.domains.saas.policy import simulate_policy
 from mlfactory.report import build_html
-from mlfactory.split import split_dataset
+from mlfactory.compute.split import split_dataset
 
 SCHEMA = {
     "id_col": "account_id",

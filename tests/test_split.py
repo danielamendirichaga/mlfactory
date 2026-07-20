@@ -5,8 +5,8 @@ from __future__ import annotations
 import pytest
 
 from mlfactory.config import ChurnConfig
-from mlfactory.generate import make_panel
-from mlfactory.split import SplitManifest, SplitError, split_dataset
+from mlfactory.domains.saas.generate import make_panel
+from mlfactory.compute.split import SplitManifest, SplitError, split_dataset
 
 SCHEMA = {
     "id_col": "account_id",

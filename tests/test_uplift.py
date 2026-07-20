@@ -6,8 +6,14 @@ import numpy as np
 import pytest
 
 from mlfactory.config import ChurnConfig
-from mlfactory.generate import make_panel
-from mlfactory.uplift import UpliftCard, UpliftError, load_uplift, save_uplift, train_uplift
+from mlfactory.domains.saas.generate import make_panel
+from mlfactory.domains.saas.uplift import (
+    UpliftCard,
+    UpliftError,
+    load_uplift,
+    save_uplift,
+    train_uplift,
+)
 
 FEATURES = [
     "tenure_months",

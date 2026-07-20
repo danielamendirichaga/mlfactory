@@ -6,8 +6,8 @@ import numpy as np
 import pytest
 
 from mlfactory.config import ChurnConfig
-from mlfactory.generate import make_panel
-from mlfactory.model import (
+from mlfactory.domains.saas.generate import make_panel
+from mlfactory.compute.model import (
     MODELS,
     ModelCard,
     ModelError,
@@ -94,7 +94,7 @@ def test_model_card_artifact_and_lineage(train_df, tmp_path):
 def test_save_load_roundtrip(train_df, tmp_path):
     est, _ = train_model(train_df, _cfg(), model="rf")
     p = tmp_path / "model.pkl"
-    from mlfactory.model import save_model
+    from mlfactory.compute.model import save_model
 
     save_model(est, p)
     reloaded = load_model(p)

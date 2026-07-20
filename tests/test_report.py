@@ -109,10 +109,10 @@ def test_report_from_real_artifacts():
     import pandas as pd  # noqa: F401
 
     from mlfactory.config import ChurnConfig
-    from mlfactory.evaluate import evaluate_model
-    from mlfactory.generate import make_panel
-    from mlfactory.model import train_model
-    from mlfactory.policy import simulate_policy
+    from mlfactory.compute.evaluate import evaluate_model
+    from mlfactory.domains.saas.generate import make_panel
+    from mlfactory.compute.model import train_model
+    from mlfactory.domains.saas.policy import simulate_policy
 
     schema = {
         "id_col": "account_id",

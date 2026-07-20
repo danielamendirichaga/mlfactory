@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from mlfactory.generate import DRIFT_FEATURE, TARGET, make_panel
+from mlfactory.domains.saas.generate import DRIFT_FEATURE, TARGET, make_panel
 
 EXPECTED_COLUMNS = {
     "account_id",

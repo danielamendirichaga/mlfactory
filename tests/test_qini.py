@@ -6,15 +6,15 @@ import numpy as np
 import pytest
 
 from mlfactory.config import ChurnConfig
-from mlfactory.generate import make_panel
-from mlfactory.qini import (
+from mlfactory.domains.saas.generate import make_panel
+from mlfactory.domains.saas.qini import (
     QiniError,
     QiniReport,
     evaluate_uplift,
     qini_coefficient,
     uplift_by_decile,
 )
-from mlfactory.uplift import train_uplift
+from mlfactory.domains.saas.uplift import train_uplift
 
 FEATURES = [
     "tenure_months",
