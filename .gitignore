@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Environments
+.venv/
+venv/
+env/
+
+# Tooling caches
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Data & artifacts — synthetic/generated; NEVER commit real customer data
+data/
+reports/
+*.parquet
+*.pkl
+*.joblib
+
+# OS
+.DS_Store
+
+# Local working notes / scratch — kept out of the repo.
+local-notes/
+
+# Generated / local configs (scaffolded by `churnpilot init`)
+churn.yaml
+ab.yaml
+
+# Local notes / office docs — never commit
+*.docx
+*.doc
+~$*
