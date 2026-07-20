@@ -112,10 +112,10 @@ source:
   #                table: customers
 
 schema:
-  id_col: subscriber_id        # unique customer / subscriber id
+  id_col: account_id        # unique customer / account id
   target_col: churn_next_30d   # the column to predict
   positive_value: 1            # value in target_col that means "churned"
   date_col: observation_month  # optional; enables time-aware split + drift. Omit for snapshot data.
   value_col: cltv              # optional; customer value for the policy simulator
-  features: auto               # "auto" = all other columns, or a list: [tenure_months, watch_hours_30d]
+  features: auto               # "auto" = all other columns, or a list: [tenure_months, product_usage_hours_30d]
 """

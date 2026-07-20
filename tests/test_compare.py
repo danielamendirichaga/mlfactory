@@ -10,17 +10,17 @@ from mlfactory.generate import make_panel
 
 FEATURES = [
     "tenure_months",
-    "monthly_price",
-    "watch_hours_30d",
+    "mrr",
+    "product_usage_hours_30d",
     "active_days_30d",
-    "days_since_last_watch",
-    "watch_hours_trend",
+    "days_since_last_login",
+    "usage_trend_30d",
     "support_tickets_30d",
     "plan_tier",
     "region",
 ]
 SCHEMA = {
-    "id_col": "subscriber_id",
+    "id_col": "account_id",
     "target_col": "churn_next_30d",
     "date_col": "observation_month",
     "value_col": "cltv",
@@ -30,8 +30,8 @@ SCHEMA = {
 
 @pytest.fixture(scope="module")
 def splits():
-    train = make_panel(n_subscribers=1200, n_months=10, seed=21)
-    holdout = make_panel(n_subscribers=500, n_months=10, seed=22)
+    train = make_panel(n_accounts=1200, n_months=10, seed=21)
+    holdout = make_panel(n_accounts=500, n_months=10, seed=22)
     return train, holdout
 
 

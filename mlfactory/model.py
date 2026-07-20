@@ -244,7 +244,7 @@ def _inner_split(train_df: pd.DataFrame, config: ChurnConfig, seed: int):
 
     * panel (date_col present) → **time-aware**: the latest training cohorts are the inner-val,
       so early stopping never selects on memorised individuals (a plain random split leaks the
-      same subscriber into inner-train and inner-val on panel data).
+      same account into inner-train and inner-val on panel data).
     * snapshot (no date_col) → **stratified** random (the standard method — correct where
       there are no entities to leak).
     """

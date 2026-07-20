@@ -73,7 +73,11 @@ def test_policy_needs_value_col():
 
 # --- retrain (from drift) ------------------------------------------------- #
 def test_retrain_on_drift():
-    drift = {"skipped": False, "retrain_recommended": True, "drifted": ["watch_hours_30d", "x"]}
+    drift = {
+        "skipped": False,
+        "retrain_recommended": True,
+        "drifted": ["product_usage_hours_30d", "x"],
+    }
     rec = recommend_retrain(drift)
     assert rec.action["retrain"] is True and "2 feature" in rec.rationale
 

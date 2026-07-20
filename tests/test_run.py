@@ -12,12 +12,12 @@ runner = CliRunner()
 
 def _write_config(tmp_path) -> tuple:
     panel = tmp_path / "panel.parquet"
-    make_panel(n_subscribers=600, n_months=8, seed=3).to_parquet(panel, index=False)
+    make_panel(n_accounts=600, n_months=8, seed=3).to_parquet(panel, index=False)
     cfg = tmp_path / "churn.yaml"
     cfg.write_text(
         f"source:\n  kind: file\n  path: {panel}\n"
         "schema:\n"
-        "  id_col: subscriber_id\n"
+        "  id_col: account_id\n"
         "  target_col: churn_next_30d\n"
         "  date_col: observation_month\n"
         "  value_col: cltv\n"
@@ -67,7 +67,7 @@ def test_run_yes_walks_every_gate_and_drops_the_leak(tmp_path):
     for gate in ("features", "split", "model", "ship", "policy"):
         assert f"[{gate}]" in text
     # ...and --yes takes the recommendation to exclude the planted leak feature.
-    assert "cancel_flow_visits_30d" in text and "Exclude" in text
+    assert "cancel_page_visits_30d" in text and "Exclude" in text
     assert "✔ done" in text
 
 

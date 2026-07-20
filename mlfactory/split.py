@@ -1,13 +1,13 @@
 """Train/val/test splitting — time-aware (default), grouped, or random — with a leakage guard.
 
-The panel-specific hazard: a **random row-wise** split scatters the same ``subscriber_id`` across
+The panel-specific hazard: a **random row-wise** split scatters the same ``account_id`` across
 train and test, so the model memorises individuals and scores beautifully — then collapses in
 production. So:
 
-* **time** (default) — earliest cohorts → train, latest → test (out-of-time). Subscribers
+* **time** (default) — earliest cohorts → train, latest → test (out-of-time). Accounts
   *legitimately* span the boundary (that mirrors deployment); what must never overlap is a
-  subscriber-*month* row.
-* **grouped** — every row of a subscriber lands in one split (answers the cold-start question).
+  account-*month* row.
+* **grouped** — every row of a account lands in one split (answers the cold-start question).
 * **random** — row-wise; kept *because it's the tempting-wrong one*. The guard detects and
   **reports** the resulting entity leakage.
 
@@ -39,7 +39,7 @@ class LeakageCheck(BaseModel):
     model_config = ConfigDict(extra="forbid")
     row_disjoint: bool  # no (id, date) row in two splits
     time_ordered: Optional[bool]  # train < val < test in time (None if not a time split)
-    subscriber_overlap: int  # subscribers appearing in both train and test
+    account_overlap: int  # accounts appearing in both train and test
     status: Literal["ok", "warn"]
 
 
@@ -131,7 +131,7 @@ def split_dataset(
     leakage = LeakageCheck(
         row_disjoint=row_disjoint,
         time_ordered=time_ordered,
-        subscriber_overlap=overlap,
+        account_overlap=overlap,
         status=status,
     )
 

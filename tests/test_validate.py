@@ -14,14 +14,14 @@ def _cfg(schema: dict) -> ChurnConfig:
 
 PANEL = pd.DataFrame(
     {
-        "subscriber_id": [1, 1, 2],
+        "account_id": [1, 1, 2],
         "observation_month": pd.to_datetime(["2023-01-01", "2023-02-01", "2023-01-01"]),
         "churn_next_30d": [0, 1, 0],
-        "watch_hours_30d": [5.0, 2.0, 8.0],
+        "product_usage_hours_30d": [5.0, 2.0, 8.0],
     }
 )
 PANEL_SCHEMA = {
-    "id_col": "subscriber_id",
+    "id_col": "account_id",
     "target_col": "churn_next_30d",
     "date_col": "observation_month",
 }
@@ -46,7 +46,7 @@ def test_experiment_check_guides_v1_vs_v2():
 
 
 def test_missing_target_fails():
-    report = validate(PANEL, _cfg({"id_col": "subscriber_id", "target_col": "cancelled"}))
+    report = validate(PANEL, _cfg({"id_col": "account_id", "target_col": "cancelled"}))
     assert not report.ok
     assert any(c.name == "target" and c.status == "fail" for c in report.checks)
 
@@ -72,7 +72,7 @@ def test_string_positive_value_passes():
 
 
 def test_declared_date_col_absent_fails():
-    schema = {"id_col": "subscriber_id", "target_col": "churn_next_30d", "date_col": "missing_col"}
+    schema = {"id_col": "account_id", "target_col": "churn_next_30d", "date_col": "missing_col"}
     report = validate(PANEL, _cfg(schema))
     assert not report.ok
     assert any(c.name == "date" and c.status == "fail" for c in report.checks)
@@ -96,8 +96,8 @@ def test_duplicate_snapshot_ids_warn():
 
 
 def test_empty_dataset_fails():
-    df = pd.DataFrame({"subscriber_id": [], "churn_next_30d": []})
-    report = validate(df, _cfg({"id_col": "subscriber_id", "target_col": "churn_next_30d"}))
+    df = pd.DataFrame({"account_id": [], "churn_next_30d": []})
+    report = validate(df, _cfg({"id_col": "account_id", "target_col": "churn_next_30d"}))
     assert not report.ok
 
 

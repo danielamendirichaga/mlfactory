@@ -195,7 +195,7 @@ def build_html(
     body = (
         '<div class="wrap">'
         '<header><div class="eyebrow">mlfactory · retention report</div>'
-        "<h1>Streaming churn — model &amp; policy</h1>"
+        "<h1>SaaS churn — model &amp; policy</h1>"
         f'<p class="meta">Held-out test: {n_rows:,} rows · model: {family}</p></header>'
         f'<section class="tiles">{"".join(tiles)}</section>'
         f"{''.join(figs)}"

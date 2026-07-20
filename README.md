@@ -10,12 +10,14 @@ substitutes for a computation. Architecture blueprint: [`ml-factory-architecture
 
 > **Status: in progress — bootstrapping the deterministic core.** mlfactory is being built by lifting the
 > proven, tested compute core of [churnpilot](../AI&DS_lab) (a churn/retention analysis tool built to the
-> same thesis) and generalizing it into a domain-agnostic factory. **Churn is the bundled reference
-> domain** that exercises the pipeline end-to-end.
+> same thesis) and generalizing it into a domain-agnostic factory. **A B2B SaaS account-churn
+> domain is the bundled reference domain** that exercises the pipeline end-to-end — an account-month
+> panel (product usage, seats, MRR, logins, discounts, support) with churn as the target and a
+> retention-offer uplift layer; rich enough to add expansion/upsell as a second target later.
 >
 > **Done:** the lifted deterministic core is green (metric suite, split + leakage guard, model menu,
-> stability-based selection, held-out evaluation, typed artifacts with `parent_sha256` lineage, the churn
-> reference domain) — 168 tests passing.
+> stability-based selection, held-out evaluation, typed artifacts with `parent_sha256` lineage, the B2B
+> SaaS reference domain) — 168 tests passing.
 > **Roadmap** (see [`REUSE-MAP.md`](REUSE-MAP.md)): heavy-tier contracts (`validate-artifact` lineage
 > walker + versioning + delete-on-failure), a standalone feature-engineering stage, an Optuna
 > hyper-parameter search, and the LLM orchestration layer (per-stage skills + specialist subagents + MCP
@@ -59,7 +61,7 @@ uv pip install --python .venv pytest ruff mypy types-PyYAML
 .venv/bin/pytest -q                        # the lifted core, green
 ```
 
-The generic factory CLI (`mlfactory <command>`) and the churn reference-domain demo are being wired up
+The generic factory CLI (`mlfactory <command>`) and the B2B SaaS reference-domain demo are being wired up
 per the roadmap. See [`REUSE-MAP.md`](REUSE-MAP.md) for the build plan.
 
 ---
@@ -68,7 +70,7 @@ per the roadmap. See [`REUSE-MAP.md`](REUSE-MAP.md) for the build plan.
 
 - **Original / clean-room.** All compute is written from scratch, reimplementing standard public methods
   (decile-table KS, PSI, leakage-safe pipelines). Bootstrapped from the author's own churnpilot project.
-- **Synthetic data only** in the churn reference domain — generated from a seed, no real data or PII.
+- **Synthetic data only** in the B2B SaaS reference domain — generated from a seed, no real data or PII.
 
 ## License
 

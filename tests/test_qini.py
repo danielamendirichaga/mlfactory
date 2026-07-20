@@ -18,14 +18,14 @@ from mlfactory.uplift import train_uplift
 
 FEATURES = [
     "tenure_months",
-    "monthly_price",
-    "watch_hours_30d",
-    "days_since_last_watch",
-    "watch_hours_trend",
+    "mrr",
+    "product_usage_hours_30d",
+    "days_since_last_login",
+    "usage_trend_30d",
     "support_tickets_30d",
     "payment_failures_30d",
-    "promo_months_left",
-    "on_promo",
+    "discount_months_left",
+    "in_discount",
     "plan_tier",
     "region",
 ]
@@ -36,7 +36,7 @@ def _cfg():
         {
             "source": {"kind": "synthetic"},
             "schema": {
-                "id_col": "subscriber_id",
+                "id_col": "account_id",
                 "target_col": "churn_next_30d",
                 "date_col": "observation_month",
                 "value_col": "cltv",
@@ -48,7 +48,7 @@ def _cfg():
 
 @pytest.fixture(scope="module")
 def scored():
-    df = make_panel(n_subscribers=4000, n_months=12, seed=9, treatment=True)
+    df = make_panel(n_accounts=4000, n_months=12, seed=9, treatment=True)
     cfg = _cfg()
     model, _ = train_uplift(df, cfg, learner="t", seed=1)
     retained = 1 - (df["churn_next_30d"] == 1).to_numpy().astype(int)
@@ -95,7 +95,7 @@ def test_evaluate_uplift_report(scored):
 
 def test_requires_treatment_column(scored):
     _, cfg, model, *_ = scored
-    plain = make_panel(n_subscribers=300, n_months=6, seed=2)  # no treated column
+    plain = make_panel(n_accounts=300, n_months=6, seed=2)  # no treated column
     with pytest.raises(QiniError, match="treated"):
         evaluate_uplift(model, plain, cfg)
 

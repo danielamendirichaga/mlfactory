@@ -4,11 +4,11 @@
 numeric summary stats, and — for numeric features — a correlation to the **binarized** target
 (``target == positive_value``, the same rule ``train``/``evaluate`` use, so it works for string
 labels like ``"Yes"/"No"`` too). That target correlation is what surfaces the planted leakage
-trap (``cancel_flow_visits_30d`` shows an extreme correlation); :func:`high_corr_features`
+trap (``cancel_page_visits_30d`` shows an extreme correlation); :func:`high_corr_features`
 turns that into a soft "possible leakage" hint the agent can act on.
 
 Roles for the id / date / target columns come from the config (not guessed), which matters
-in panel data where ``subscriber_id`` is *not* mostly-unique. numpy/pandas only.
+in panel data where ``account_id`` is *not* mostly-unique. numpy/pandas only.
 """
 
 from __future__ import annotations

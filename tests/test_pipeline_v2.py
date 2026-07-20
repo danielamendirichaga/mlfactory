@@ -16,20 +16,20 @@ from mlfactory.report import build_html
 from mlfactory.uplift import train_uplift
 
 SCHEMA = {
-    "id_col": "subscriber_id",
+    "id_col": "account_id",
     "target_col": "churn_next_30d",
     "date_col": "observation_month",
     "value_col": "cltv",
     "features": [
         "tenure_months",
-        "monthly_price",
-        "watch_hours_30d",
-        "days_since_last_watch",
-        "watch_hours_trend",
+        "mrr",
+        "product_usage_hours_30d",
+        "days_since_last_login",
+        "usage_trend_30d",
         "support_tickets_30d",
         "payment_failures_30d",
-        "promo_months_left",
-        "on_promo",
+        "discount_months_left",
+        "in_discount",
         "plan_tier",
         "region",
     ],
@@ -38,7 +38,7 @@ SCHEMA = {
 
 def test_uplift_pipeline_end_to_end():
     cfg = ChurnConfig.model_validate({"source": {"kind": "synthetic"}, "schema": SCHEMA})
-    df = make_panel(n_subscribers=3000, n_months=12, seed=9, treatment=True)
+    df = make_panel(n_accounts=3000, n_months=12, seed=9, treatment=True)
 
     # risk + uplift models
     risk, risk_card = train_model(df, cfg, model="logistic", seed=1)

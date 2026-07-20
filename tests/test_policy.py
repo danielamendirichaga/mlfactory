@@ -11,17 +11,17 @@ from mlfactory.policy import PolicyError, PolicyReport, simulate_policy
 
 FEATURES = [
     "tenure_months",
-    "monthly_price",
-    "watch_hours_30d",
+    "mrr",
+    "product_usage_hours_30d",
     "active_days_30d",
-    "days_since_last_watch",
-    "watch_hours_trend",
+    "days_since_last_login",
+    "usage_trend_30d",
     "support_tickets_30d",
     "plan_tier",
     "region",
 ]
 SCHEMA = {
-    "id_col": "subscriber_id",
+    "id_col": "account_id",
     "target_col": "churn_next_30d",
     "date_col": "observation_month",
     "value_col": "cltv",
@@ -40,8 +40,8 @@ def _cfg(value_col: str | None = "cltv"):
 
 @pytest.fixture(scope="module")
 def fitted():
-    train = make_panel(n_subscribers=1500, n_months=10, seed=41)
-    data = make_panel(n_subscribers=800, n_months=10, seed=42)
+    train = make_panel(n_accounts=1500, n_months=10, seed=41)
+    data = make_panel(n_accounts=800, n_months=10, seed=42)
     est, _ = train_model(train, _cfg(), model="logistic", seed=1)
     return est, data
 

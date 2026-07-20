@@ -59,17 +59,17 @@ def generate(
     out: Path = typer.Option(
         Path("data/churn_panel.parquet"), "--out", help="Output parquet path."
     ),
-    subscribers: int = typer.Option(8000, "--subscribers", help="Number of subscribers."),
+    accounts: int = typer.Option(8000, "--accounts", help="Number of accounts."),
     months: int = typer.Option(24, "--months", help="Number of monthly cohorts."),
     seed: int = typer.Option(42, "--seed", help="RNG seed (deterministic)."),
     treatment: bool = typer.Option(
         False, "--treatment", help="Overlay a randomized A/B test (adds uplift columns, for v2)."
     ),
 ) -> None:
-    """Generate the deterministic synthetic streaming churn panel (no real data)."""
+    """Generate the deterministic synthetic SaaS churn panel (no real data)."""
     from .generate import make_panel, summarize
 
-    df = make_panel(n_subscribers=subscribers, n_months=months, seed=seed, treatment=treatment)
+    df = make_panel(n_accounts=accounts, n_months=months, seed=seed, treatment=treatment)
     out.parent.mkdir(parents=True, exist_ok=True)
     df.to_parquet(out, index=False)
     typer.echo(f"Wrote {out}")
@@ -231,14 +231,12 @@ def split(
     lk = manifest.leakage
     if lk.status == "warn":
         typer.echo(
-            f"  ⚠ entity leakage: {lk.subscriber_overlap:,} subscribers in BOTH train & test "
+            f"  ⚠ entity leakage: {lk.account_overlap:,} accounts in BOTH train & test "
             "— use --strategy time"
         )
     else:
-        detail = "expected for time split" if strategy == "time" else "subscribers disjoint"
-        typer.echo(
-            f"  ✔ leakage guard ok ({lk.subscriber_overlap:,} subscriber overlap — {detail})"
-        )
+        detail = "expected for time split" if strategy == "time" else "accounts disjoint"
+        typer.echo(f"  ✔ leakage guard ok ({lk.account_overlap:,} account overlap — {detail})")
 
 
 @app.command()

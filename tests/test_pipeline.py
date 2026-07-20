@@ -17,15 +17,15 @@ from mlfactory.report import build_html
 from mlfactory.split import split_dataset
 
 SCHEMA = {
-    "id_col": "subscriber_id",
+    "id_col": "account_id",
     "target_col": "churn_next_30d",
     "date_col": "observation_month",
     "value_col": "cltv",
     "features": [
         "tenure_months",
-        "monthly_price",
-        "watch_hours_30d",
-        "days_since_last_watch",
+        "mrr",
+        "product_usage_hours_30d",
+        "days_since_last_login",
         "support_tickets_30d",
         "plan_tier",
         "region",
@@ -35,7 +35,7 @@ SCHEMA = {
 
 def test_full_pipeline_end_to_end(tmp_path):
     cfg = ChurnConfig.model_validate({"source": {"kind": "synthetic"}, "schema": SCHEMA})
-    df = make_panel(n_subscribers=1000, n_months=18, seed=71)
+    df = make_panel(n_accounts=1000, n_months=18, seed=71)
 
     # split (time-aware, leakage-guarded) → split-manifest
     train, val, test, split_manifest = split_dataset(df, cfg, strategy="time")

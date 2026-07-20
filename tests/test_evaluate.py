@@ -11,17 +11,17 @@ from mlfactory.model import train_model
 
 FEATURES = [
     "tenure_months",
-    "monthly_price",
-    "watch_hours_30d",
+    "mrr",
+    "product_usage_hours_30d",
     "active_days_30d",
-    "days_since_last_watch",
-    "watch_hours_trend",
+    "days_since_last_login",
+    "usage_trend_30d",
     "support_tickets_30d",
     "plan_tier",
     "region",
 ]
 SCHEMA = {
-    "id_col": "subscriber_id",
+    "id_col": "account_id",
     "target_col": "churn_next_30d",
     "date_col": "observation_month",
     "value_col": "cltv",
@@ -35,8 +35,8 @@ def _cfg():
 
 @pytest.fixture(scope="module")
 def fitted():
-    train = make_panel(n_subscribers=1200, n_months=10, seed=31)
-    test = make_panel(n_subscribers=500, n_months=10, seed=32)
+    train = make_panel(n_accounts=1200, n_months=10, seed=31)
+    test = make_panel(n_accounts=500, n_months=10, seed=32)
     est, _ = train_model(train, _cfg(), model="logistic", seed=1)
     return est, train, test
 
@@ -93,4 +93,4 @@ def test_artifact_lineage_and_roundtrip(fitted, tmp_path):
 def test_missing_feature_columns_raises(fitted):
     est, _, test = fitted
     with pytest.raises(ValueError, match="missing feature columns"):
-        evaluate_model(est, test.drop(columns=["watch_hours_30d"]), _cfg())
+        evaluate_model(est, test.drop(columns=["product_usage_hours_30d"]), _cfg())

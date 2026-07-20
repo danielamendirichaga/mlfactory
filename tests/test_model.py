@@ -18,17 +18,17 @@ from mlfactory.model import (
 # Explicit features EXCLUDING the leakage trap → tests exercise genuine signal.
 FEATURES = [
     "tenure_months",
-    "monthly_price",
-    "watch_hours_30d",
+    "mrr",
+    "product_usage_hours_30d",
     "active_days_30d",
-    "days_since_last_watch",
-    "watch_hours_trend",
+    "days_since_last_login",
+    "usage_trend_30d",
     "support_tickets_30d",
     "plan_tier",
     "region",
 ]
 SCHEMA = {
-    "id_col": "subscriber_id",
+    "id_col": "account_id",
     "target_col": "churn_next_30d",
     "date_col": "observation_month",
     "value_col": "cltv",
@@ -38,7 +38,7 @@ SCHEMA = {
 
 @pytest.fixture(scope="module")
 def train_df():
-    return make_panel(n_subscribers=1500, n_months=10, seed=11)
+    return make_panel(n_accounts=1500, n_months=10, seed=11)
 
 
 def _cfg():
@@ -147,7 +147,7 @@ def test_cli_train_warns_on_leakage(tmp_path, train_df):
     cfgp = tmp_path / "churn.yaml"
     cfgp.write_text(
         "source:\n  kind: synthetic\n"
-        "schema:\n  id_col: subscriber_id\n  target_col: churn_next_30d\n"
+        "schema:\n  id_col: account_id\n  target_col: churn_next_30d\n"
         "  date_col: observation_month\n  features: auto\n"
     )
     result = CliRunner().invoke(
@@ -166,4 +166,4 @@ def test_cli_train_warns_on_leakage(tmp_path, train_df):
     )
     assert result.exit_code == 0
     assert "leakage" in result.output
-    assert "cancel_flow_visits_30d" in result.output
+    assert "cancel_page_visits_30d" in result.output

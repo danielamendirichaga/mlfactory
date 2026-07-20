@@ -9,7 +9,7 @@ from mlfactory.generate import make_panel
 from mlfactory.split import SplitManifest, SplitError, split_dataset
 
 SCHEMA = {
-    "id_col": "subscriber_id",
+    "id_col": "account_id",
     "target_col": "churn_next_30d",
     "date_col": "observation_month",
 }
@@ -17,7 +17,7 @@ SCHEMA = {
 
 @pytest.fixture(scope="module")
 def panel():
-    return make_panel(n_subscribers=1200, n_months=12, seed=4)
+    return make_panel(n_accounts=1200, n_months=12, seed=4)
 
 
 def _cfg(schema=SCHEMA):
@@ -36,17 +36,17 @@ def test_time_split_is_time_ordered(panel):
     assert len(train) + len(val) + len(test) == len(panel)
 
 
-def test_grouped_split_disjoint_subscribers(panel):
+def test_grouped_split_disjoint_accounts(panel):
     train, val, test, manifest = split_dataset(panel, _cfg(), strategy="grouped", seed=1)
-    assert manifest.leakage.subscriber_overlap == 0
-    assert set(train["subscriber_id"]).isdisjoint(set(test["subscriber_id"]))
+    assert manifest.leakage.account_overlap == 0
+    assert set(train["account_id"]).isdisjoint(set(test["account_id"]))
     assert manifest.leakage.status == "ok"
 
 
 def test_random_split_flags_entity_leakage(panel):
     _, _, _, manifest = split_dataset(panel, _cfg(), strategy="random", seed=1)
-    # Same subscriber lands in train AND test → the guard warns.
-    assert manifest.leakage.subscriber_overlap > 0
+    # Same account lands in train AND test → the guard warns.
+    assert manifest.leakage.account_overlap > 0
     assert manifest.leakage.status == "warn"
 
 
@@ -65,7 +65,7 @@ def test_ratios_approximate(panel):
 
 
 def test_time_split_needs_date_col(panel):
-    snapshot_cfg = _cfg({"id_col": "subscriber_id", "target_col": "churn_next_30d"})
+    snapshot_cfg = _cfg({"id_col": "account_id", "target_col": "churn_next_30d"})
     with pytest.raises(SplitError, match="date_col"):
         split_dataset(panel, snapshot_cfg, strategy="time")
 

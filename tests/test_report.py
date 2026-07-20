@@ -115,15 +115,20 @@ def test_report_from_real_artifacts():
     from mlfactory.policy import simulate_policy
 
     schema = {
-        "id_col": "subscriber_id",
+        "id_col": "account_id",
         "target_col": "churn_next_30d",
         "date_col": "observation_month",
         "value_col": "cltv",
-        "features": ["tenure_months", "watch_hours_30d", "days_since_last_watch", "plan_tier"],
+        "features": [
+            "tenure_months",
+            "product_usage_hours_30d",
+            "days_since_last_login",
+            "plan_tier",
+        ],
     }
     cfg = ChurnConfig.model_validate({"source": {"kind": "synthetic"}, "schema": schema})
-    train = make_panel(n_subscribers=800, n_months=8, seed=51)
-    test = make_panel(n_subscribers=400, n_months=8, seed=52)
+    train = make_panel(n_accounts=800, n_months=8, seed=51)
+    test = make_panel(n_accounts=400, n_months=8, seed=52)
     est, _ = train_model(train, cfg, model="logistic", seed=1)
     ev = evaluate_model(est, test, cfg).model_dump()
     pol = simulate_policy(est, test, cfg, offer_cost=2.0).model_dump()

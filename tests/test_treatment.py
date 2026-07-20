@@ -18,13 +18,13 @@ from mlfactory.model import feature_columns
 
 @pytest.fixture(scope="module")
 def panel_t():
-    return make_panel(n_subscribers=2500, n_months=12, seed=5, treatment=True)
+    return make_panel(n_accounts=2500, n_months=12, seed=5, treatment=True)
 
 
 # --- v1 is untouched when treatment is off ------------------------------- #
 def test_default_frame_unchanged():
-    a = make_panel(n_subscribers=600, n_months=8, seed=7)
-    b = make_panel(n_subscribers=600, n_months=8, seed=7, treatment=False)
+    a = make_panel(n_accounts=600, n_months=8, seed=7)
+    b = make_panel(n_accounts=600, n_months=8, seed=7, treatment=False)
     pd.testing.assert_frame_equal(a, b)
     assert "treated" not in a.columns and "true_uplift" not in a.columns
     assert 0.05 < a["churn_next_30d"].mean() < 0.16  # still ~10%
@@ -33,7 +33,7 @@ def test_default_frame_unchanged():
 def test_treatment_adds_columns_and_is_deterministic(panel_t):
     for col in ("treated", "true_uplift", "churn_if_control", "churn_if_treated"):
         assert col in panel_t.columns
-    again = make_panel(n_subscribers=2500, n_months=12, seed=5, treatment=True)
+    again = make_panel(n_accounts=2500, n_months=12, seed=5, treatment=True)
     pd.testing.assert_frame_equal(panel_t, again)
 
 
@@ -41,7 +41,7 @@ def test_treatment_adds_columns_and_is_deterministic(panel_t):
 def test_randomization_is_balanced_and_feature_independent(panel_t):
     assert 0.46 < panel_t["treated"].mean() < 0.54
     # treatment assignment is independent of features → a valid experiment
-    corr = panel_t["treated"].corr(panel_t["watch_hours_30d"].fillna(0))
+    corr = panel_t["treated"].corr(panel_t["product_usage_hours_30d"].fillna(0))
     assert abs(corr) < 0.06
 
 
@@ -81,7 +81,7 @@ def test_oracle_and_treatment_cols_excluded_from_features(panel_t):
         {
             "source": {"kind": "synthetic"},
             "schema": {
-                "id_col": "subscriber_id",
+                "id_col": "account_id",
                 "target_col": "churn_next_30d",
                 "date_col": "observation_month",
                 "value_col": "cltv",

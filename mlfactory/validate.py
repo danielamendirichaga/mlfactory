@@ -115,7 +115,7 @@ def validate(df: pd.DataFrame, config: ChurnConfig) -> ValidationReport:
                 Check(
                     "id",
                     "pass",
-                    f"id '{idc}': {df[idc].nunique():,} subscribers, (id, date) unique",
+                    f"id '{idc}': {df[idc].nunique():,} accounts, (id, date) unique",
                 )
             )
     else:

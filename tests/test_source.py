@@ -10,13 +10,13 @@ import pytest
 from mlfactory.config import ChurnConfig
 from mlfactory.source import SourceError, load_data
 
-SCHEMA = {"id_col": "subscriber_id", "target_col": "churn_next_30d"}
+SCHEMA = {"id_col": "account_id", "target_col": "churn_next_30d"}
 
 SMALL = pd.DataFrame(
     {
-        "subscriber_id": [1, 2, 3],
+        "account_id": [1, 2, 3],
         "churn_next_30d": [0, 1, 0],
-        "watch_hours_30d": [5.0, 1.0, 9.0],
+        "product_usage_hours_30d": [5.0, 1.0, 9.0],
     }
 )
 
@@ -78,7 +78,7 @@ def test_load_coerces_numeric_looking_text(tmp_path):
     n = 20
     raw = pd.DataFrame(
         {
-            "subscriber_id": range(n),
+            "account_id": range(n),
             "churn_next_30d": [0, 1] * (n // 2),
             # a stray " " keeps read_csv from auto-typing this numeric column (the Telco quirk)
             "spend": [f"{i}.5" for i in range(n - 1)] + [" "],
@@ -99,7 +99,7 @@ def test_coerce_helper_threshold_blanks_and_exclusions():
     n = 20
     df = pd.DataFrame(
         {
-            "subscriber_id": [str(i) for i in range(n)],  # numeric-text, but it's the id → excluded
+            "account_id": [str(i) for i in range(n)],  # numeric-text, but it's the id → excluded
             "churn_next_30d": [0, 1] * (n // 2),
             "spend": [f"{i}.0" for i in range(n - 1)] + [" "],  # 19/20 = 95% numeric → coerce
             "plan": ["a", "b"] * (n // 2),  # 0% numeric → keep
@@ -107,6 +107,6 @@ def test_coerce_helper_threshold_blanks_and_exclusions():
     )
     out = _coerce_numeric_like(df, _cfg({"kind": "synthetic"}))
     assert pd.api.types.is_numeric_dtype(out["spend"]) and int(out["spend"].isna().sum()) == 1
-    assert not pd.api.types.is_numeric_dtype(out["subscriber_id"])  # id column never coerced
+    assert not pd.api.types.is_numeric_dtype(out["account_id"])  # id column never coerced
     assert not pd.api.types.is_numeric_dtype(out["plan"])  # categorical never coerced
     assert out.attrs["coerced_numeric"] == ["spend"]

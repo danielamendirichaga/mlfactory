@@ -21,7 +21,7 @@ MINIMAL = """
 source:
   kind: synthetic
 schema:
-  id_col: subscriber_id
+  id_col: account_id
   target_col: churn_next_30d
 """
 
@@ -33,7 +33,7 @@ def test_minimal_config_loads(tmp_path):
     cfg = load_config(_write(tmp_path, MINIMAL))
     assert isinstance(cfg, ChurnConfig)
     assert cfg.source.kind == "synthetic"
-    assert cfg.columns.id_col == "subscriber_id"
+    assert cfg.columns.id_col == "account_id"
     assert cfg.columns.target_col == "churn_next_30d"
 
 
@@ -80,7 +80,7 @@ def test_missing_required_field_raises(tmp_path):
 source:
   kind: synthetic
 schema:
-  id_col: subscriber_id
+  id_col: account_id
 """  # no target_col
     with pytest.raises(ConfigError, match="target_col"):
         load_config(_write(tmp_path, cfg))
