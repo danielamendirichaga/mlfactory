@@ -41,6 +41,7 @@ Currently **168 tests green, ruff + mypy clean**. The LLM orchestration layer is
 - lint/fmt:`.venv/bin/ruff check .`  /  `.venv/bin/ruff format .`
 - types:   `.venv/bin/mypy mlfactory`
 - run:     `.venv/bin/mlfactory <cmd>`  (init | generate | validate | profile | metrics | split | train | compare | evaluate | simulate-policy | report | monitor | advise | run | version)
+- factory: `engineer-features` (Stage 4) · `validate-artifact --walk-lineage --probe-output` · `export-schemas [--check]` · `gen-model-card`. Stage commands take `--json` for machine output (the tool surface subagents shell out to).
 - v2 uplift: `generate --treatment` | `train-uplift` | `uplift-eval` | `policy-contrast`
 - build:   `uv build`  → an installable wheel (this is the "release" — there is NO web deploy)
 

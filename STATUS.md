@@ -1,11 +1,12 @@
 # Status — mlfactory (updated 2026-07-20)
 
 ## Where we are
-MVP deterministic core now has the heavy contract-tier spine (#1) and the **standalone Stage-4
-`engineer-features` stage** (#2 — closed transform registry, fit-on-train/apply-outward, feature-spec
-artifact). Green and on `main`. Next slice: **issue #3 — CLI `--json` + `gen-model-card` + PRD/ADRs**.
+**The MVP deterministic core is complete** (issues #1–#3): heavy contract-tier spine + `validate-artifact`,
+the standalone `engineer-features` stage, and the CLI tool surface (`--json`, `gen-model-card`) + PRD/ADRs.
+Green and on `main`. Next: **issue #4 — Optuna hp-search + GBM engines** (compute depth), then the agent
+layer (#5).
 
-**Health:** 198 tests green · ruff + mypy clean · CLI verified end-to-end · Python 3.11 / uv.
+**Health:** 203 tests green · ruff + mypy clean · CLI verified end-to-end · Python 3.11 / uv.
 
 ## Done
 - **Bootstrap** — lifted churnpilot's tested deterministic core into `mlfactory` (renamed), fresh repo. (`4ca941c`)
@@ -23,15 +24,17 @@ artifact). Green and on `main`. Next slice: **issue #3 — CLI `--json` + `gen-m
 - **#2 — Standalone `engineer-features` stage** — closed 8-transform registry (fit-on-train /
   apply-outward; CV-folded target-encoding), model-ready postcondition, `feature-spec` artifact, and
   the `engineer-features` CLI. +10 tests (198 total).
+- **#3 — CLI tool surface + planning docs** — `gen-model-card` (markdown card), `--json` machine output
+  on `train`/`engineer-features`, and `docs/PRD.md` + `docs/ADRs.md` (reversing churnpilot ADR-001/009).
+  +5 tests (203 total). **MVP deterministic core complete.**
 
 ## In progress
 - None. Workflow just established; next slice not yet started.
 
 ## Next up (active backlog — GitHub issues)
-1. **#3 — CLI `--json` + `gen-model-card` + write PRD/ADRs** — *the next slice.*
-2. #4 — Optuna hp-search + GBM engines (compute depth).
-3. #5 — Epic: LLM orchestration layer (L4/L5) + MCP adapters (L1).
-4. #6 — Epic: bundle distribution (L6).
+1. **#4 — Optuna hp-search + GBM engines** (compute depth) — *the next slice.*
+2. #5 — Epic: LLM orchestration layer (L4/L5) + MCP adapters (L1).
+3. #6 — Epic: bundle distribution (L6).
 
 ## Key decisions (see AGENTS.md + REUSE-MAP.md)
 - Generic ML factory per `ml-factory-architecture.md`; **churn/SaaS is the reference domain**, not the point.
