@@ -2,6 +2,18 @@
 
 Append-only log of what changed and when. Newest first.
 
+## 2026-07-21 — #10 Agent-layer foundation (pipeline orchestrator + CLI-wrapper subagents)
+- Started the LLM orchestration layer under `.claude/`: `commands/mlfactory-run.md` (the `/mlfactory-run`
+  orchestrator — phase flow, deterministic-tool boundary, spawn-a-subagent-per-stage, closing
+  `validate-artifact` gate + delete-on-failure), `agents/mlfactory-stage-runner.md` (no-retry
+  CLI-wrapper), `agents/mlfactory-artifact-validator.md` (the closing gate), + `.claude/README.md`.
+- Added `docs/example-feature-spec.yaml` (a SaaS feature recipe the orchestrator consumes).
+- `tests/test_pipeline_e2e.py`: the deterministic pipeline the playbook drives, chained via the CLI
+  (generate → split → engineer-features → validate-artifact → train → evaluate → gen-model-card),
+  asserting the feature-spec validates + the model card renders. +1 test (204 total).
+- Verified live end-to-end; the `features: auto` happy path trains on the planted leak (AUC ≈ 1.0) —
+  the exact motivation for the EDA leakage-scanner (#11). ruff + mypy clean. (Closes #10)
+
 ## 2026-07-20 — #3 CLI tool surface (--json, gen-model-card) + PRD/ADRs
 - Added `gen-model-card` (`mlfactory/model_card.py` + CLI) — renders an 8-section markdown model card
   (Purpose / Training Data / Features / Performance / Calibration / Slices / Limitations / Lineage)

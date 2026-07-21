@@ -1,12 +1,11 @@
 # Status — mlfactory (updated 2026-07-20)
 
 ## Where we are
-**The MVP deterministic core is complete** (issues #1–#3): heavy contract-tier spine + `validate-artifact`,
-the standalone `engineer-features` stage, and the CLI tool surface (`--json`, `gen-model-card`) + PRD/ADRs.
-Green and on `main`. Next: **issue #4 — Optuna hp-search + GBM engines** (compute depth), then the agent
-layer (#5).
+The MVP deterministic core is complete (#1–#3), and the **agent layer has started**: **#10** (the
+foundation — the `/mlfactory-run` orchestrator + CLI-wrapper subagents + the closing `validate-artifact`
+gate, under `.claude/`) is done. Green and on `main`. Next: **#11 — the EDA stage + judgment subagents**.
 
-**Health:** 203 tests green · ruff + mypy clean · CLI verified end-to-end · Python 3.11 / uv.
+**Health:** 204 tests green · ruff + mypy clean · CLI + live pipeline verified · Python 3.11 / uv.
 
 ## Done
 - **Bootstrap** — lifted churnpilot's tested deterministic core into `mlfactory` (renamed), fresh repo. (`4ca941c`)
@@ -27,15 +26,16 @@ layer (#5).
 - **#3 — CLI tool surface + planning docs** — `gen-model-card` (markdown card), `--json` machine output
   on `train`/`engineer-features`, and `docs/PRD.md` + `docs/ADRs.md` (reversing churnpilot ADR-001/009).
   +5 tests (203 total). **MVP deterministic core complete.**
+- **#10 — Agent-layer foundation** — `.claude/` orchestrator playbook (`/mlfactory-run`) + no-retry
+  CLI-wrapper subagents + the closing `validate-artifact` gate; a CLI pipeline E2E test. +1 test (204 total).
 
 ## In progress
 - None. Workflow just established; next slice not yet started.
 
 ## Next up (active backlog — GitHub issues)
-1. **The agent layer (epic #5)** — the factory's defining half, sliced into three behavioral
-   (prompt/agent-engineering) slices, build in order:
-   - **#10** — foundation + deterministic pipeline orchestrator (CLI-wrapper subagents + closing gate)
-   - **#11** — EDA stage playbook + judgment subagents (column-profiler, leakage-scanner, model-recommender)
+1. **The agent layer (epic #5)** — three behavioral (prompt/agent-engineering) slices; #10 done, build #11 → #12:
+   - ✅ **#10** — foundation + deterministic pipeline orchestrator (done)
+   - **#11** — EDA stage playbook + judgment subagents (column-profiler, leakage-scanner, model-recommender) — *the next slice.*
    - **#12** — human-in-the-loop gates (AI proposes, human decides)
 2. #4 — Optuna hp-search + GBM engines (compute depth) — *deferred; optional enhancement, pick up anytime.*
 
