@@ -43,7 +43,7 @@ the full agent layer (#10–#12, `.claude/`), and Optuna hp-search + `hist_gbm` 
 - lint/fmt:`.venv/bin/ruff check .`  /  `.venv/bin/ruff format .`
 - types:   `.venv/bin/mypy mlfactory`
 - run:     `.venv/bin/mlfactory <cmd>`  (init | generate | validate | profile | metrics | split | train | compare | evaluate | simulate-policy | report | monitor | advise | run | version)
-- factory: `engineer-features` (Stage 4) · `leakage-scan` (EDA) · `validate-artifact --walk-lineage --probe-output` · `export-schemas [--check]` · `gen-model-card`. Stage commands take `--json` (the tool surface subagents shell out to).
+- factory: `engineer-features` (Stage 4) · `leakage-scan` (EDA) · `validate-artifact --walk-lineage --probe-output` · `export-schemas [--check]` · `gen-model-card` · `exclude-columns` (record a confirmed leakage-drop → `config.exclude_columns`). Stage commands take `--json` (the tool surface subagents shell out to).
 - v2 uplift: `generate --treatment` | `train-uplift` | `uplift-eval` | `policy-contrast`
 - build:   `uv build`  → an installable wheel (this is the "release" — there is NO web deploy)
 
@@ -75,7 +75,7 @@ architecture rule, key file, or gotcha changed.
 - sklearn/xgboost live only in `compute/model` + domain modules; the tested metric core imports only numpy/pandas.
 - xgboost needs the OpenMP runtime on macOS: `brew install libomp` (already installed on this machine).
 - Time-aware split is the default; `--strategy random` is opt-in and **wrong for panel data** (entity leakage).
-- Leakage trap: `cancel_page_visits_30d` is planted to spike with churn — `profile`/`train` flag it; keep it out of features.
+- Leakage trap: `cancel_page_visits_30d` is planted to spike with churn — `profile`/`train` flag it. Keep it out by recording the drop: `mlfactory exclude-columns --add cancel_page_visits_30d` — this writes `config.exclude_columns`, which `split`/`train` read. The EDA `eda-exploration` artifact recording the drop does **not** by itself enforce it (epic #17 / S1).
 - Generic core hardcodes no domain columns — mark never-features via `config.columns.exclude_columns`.
 - Synthetic data only; `data/` is gitignored; never commit real customer data / PII.
 - `mlfactory` = the tool name; the bundled domain is B2B SaaS account churn (NOT streaming/fintech).

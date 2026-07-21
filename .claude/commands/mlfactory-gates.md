@@ -28,6 +28,13 @@ at every genuine judgment moment**, surface the evidence + a deterministic recom
 At each gate, spawn `mlfactory-advisor` to surface the recommendation, present it, and **wait for the
 human**.
 
+**Persisting a confirmed decision.** A gate's decision only takes effect once it is written where the
+deterministic stages read it. For the **Leakage exclusion** gate that means the config, not the
+artifact: on confirm, run `mlfactory exclude-columns --config churn.yaml --add <cols>`. `split`/`train`
+read `config.exclude_columns` (via `feature_columns`), so **without this the model silently trains on
+the "dropped" leak** — the `eda-exploration` artifact recording the decision does not change what
+`train` sees.
+
 ## Why this exists
 A model that looks great in-sample and quietly collapses in production is the failure these gates
 prevent. They put a human in the loop exactly where taste and context matter — the leak call, the

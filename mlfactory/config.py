@@ -14,6 +14,7 @@ Public surface:
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import Literal
 
@@ -103,6 +104,74 @@ def load_config(path: str | Path) -> ChurnConfig:
         return ChurnConfig.model_validate(raw)
     except ValidationError as exc:
         raise ConfigError(f"Invalid churn config ({path}):\n{exc}") from exc
+
+
+def _set_exclude_columns_text(text: str, cols: list[str]) -> str:
+    """Set ``schema.exclude_columns`` in a churn.yaml *text*, preserving comments.
+
+    Replaces an existing (commented or active) ``exclude_columns:`` line under ``schema:``,
+    or inserts one at the end of the schema block if none is present. A targeted line edit
+    (not a re-serialize) so the template's onboarding comments survive.
+    """
+    flow = "[" + ", ".join(cols) + "]"
+    lines = text.splitlines()
+    schema_i = next((i for i, ln in enumerate(lines) if re.match(r"^schema\s*:", ln)), None)
+    if schema_i is None:
+        raise ConfigError("config has no top-level 'schema:' block to update")
+    # the schema block runs until the next top-level key (column 0, non-comment) or EOF
+    end = len(lines)
+    for j in range(schema_i + 1, len(lines)):
+        if re.match(r"^[^\s#]", lines[j]):
+            end = j
+            break
+    exc_re = re.compile(r"^(\s*)#?\s*exclude_columns\s*:")
+    for j in range(schema_i + 1, end):
+        mm = exc_re.match(lines[j])
+        if mm:
+            lines[j] = f"{mm.group(1) or '  '}exclude_columns: {flow}"
+            return "\n".join(lines) + ("\n" if text.endswith("\n") else "")
+    # absent → insert at the end of the block, matching the block's child indent
+    indent = "  "
+    for j in range(schema_i + 1, end):
+        m2 = re.match(r"^(\s+)\S", lines[j])
+        if m2:
+            indent = m2.group(1)
+            break
+    lines.insert(end, f"{indent}exclude_columns: {flow}")
+    return "\n".join(lines) + ("\n" if text.endswith("\n") else "")
+
+
+def set_exclude_columns(
+    path: str | Path,
+    *,
+    add: list[str] | None = None,
+    remove: list[str] | None = None,
+    replace: list[str] | None = None,
+) -> list[str]:
+    """Record a never-features (leakage) decision: update ``schema.exclude_columns`` in place.
+
+    This is how a confirmed EDA leakage-drop actually reaches the pipeline. ``split``/``train``
+    read ``config.columns.exclude_columns`` via :func:`~mlfactory.compute.model.feature_columns`,
+    so a decision only takes effect once it is written *here* — the ``eda-exploration`` artifact
+    recording it is not enough. The file is validated before and after; on any problem it is left
+    untouched and :class:`ConfigError` is raised. Returns the new exclude list.
+    """
+    path = Path(path)
+    cfg = load_config(path)  # validate + read the current list
+    if replace is not None:
+        new = list(dict.fromkeys(replace))
+    else:
+        new = list(dict.fromkeys(list(cfg.columns.exclude_columns) + list(add or [])))
+        if remove:
+            drop = set(remove)
+            new = [c for c in new if c not in drop]
+    updated = _set_exclude_columns_text(path.read_text(), new)
+    try:  # never write a config we can't read back
+        ChurnConfig.model_validate(yaml.safe_load(updated))
+    except (ValidationError, yaml.YAMLError) as exc:
+        raise ConfigError(f"Refusing to write an invalid config to {path}:\n{exc}") from exc
+    path.write_text(updated)
+    return new
 
 
 CONFIG_TEMPLATE = """\

@@ -35,7 +35,9 @@ the user to run setup (see `AGENTS.md`).
    --output-dir data/features --json`. **Then gate:** spawn `mlfactory-artifact-validator` on
    `data/features/feature-spec.md` (`--walk-lineage --probe-output`).
 4. **Train** — `train --train data/splits/train.parquet --config churn.yaml --model logistic
-   --model-out data/model.pkl --json`.
+   --model-out data/model.pkl --json`. *(Precondition: any leakage drop confirmed in `/mlfactory-eda`
+   must already be in `config.exclude_columns` via `mlfactory exclude-columns`, or training silently
+   includes the leak.)*
 5. **Evaluate** — `evaluate --model data/model.pkl --test data/splits/test.parquet --config churn.yaml
    --report-out data/eval-report.json`.
 6. **Model card** — `gen-model-card --card data/model.card.json --eval data/eval-report.json
@@ -49,7 +51,9 @@ the user to run setup (see `AGENTS.md`).
 > **Leakage note.** With `features: auto` on the SaaS reference domain, training includes the planted
 > `cancel_page_visits_30d` trap — the model scores a giveaway AUC ≈ 1.0, and `train` prints a leakage
 > warning. That is *exactly* the failure the EDA `leakage-scanner` (#11) exists to catch before training;
-> the foundation runs the mechanical happy path without that judgment yet.
+> the foundation runs the mechanical happy path without that judgment yet. Once the drop is recorded
+> (`mlfactory exclude-columns --add cancel_page_visits_30d`, #20), `feature_columns` excludes it and the
+> AUC returns to an honest range.
 
 ## Report
 End with: the model-card path, the headline held-out metric (**read from the `eval-report` artifact**,
