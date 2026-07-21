@@ -32,9 +32,16 @@ layer (#5).
 - None. Workflow just established; next slice not yet started.
 
 ## Next up (active backlog — GitHub issues)
-1. **#4 — Optuna hp-search + GBM engines** (compute depth) — *the next slice.*
-2. #5 — Epic: LLM orchestration layer (L4/L5) + MCP adapters (L1).
-3. #6 — Epic: bundle distribution (L6).
+1. **The agent layer (epic #5)** — the factory's defining half, sliced into three behavioral
+   (prompt/agent-engineering) slices, build in order:
+   - **#10** — foundation + deterministic pipeline orchestrator (CLI-wrapper subagents + closing gate)
+   - **#11** — EDA stage playbook + judgment subagents (column-profiler, leakage-scanner, model-recommender)
+   - **#12** — human-in-the-loop gates (AI proposes, human decides)
+2. #4 — Optuna hp-search + GBM engines (compute depth) — *deferred; optional enhancement, pick up anytime.*
+
+**Dropped:** #6 (bundle distribution) — out of scope (fleet distribution; mlfactory ships as a `uv build`
+wheel + the repo). **L1 MCP adapters deferred** — `source.py` (local file loader) IS the data adapter,
+and Claude Code IS the inference; add a data-source MCP only if reaching a real external DB later.
 
 ## Key decisions (see AGENTS.md + REUSE-MAP.md)
 - Generic ML factory per `ml-factory-architecture.md`; **churn/SaaS is the reference domain**, not the point.
