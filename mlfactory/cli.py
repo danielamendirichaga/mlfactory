@@ -21,13 +21,15 @@ from mlfactory.config import CONFIG_TEMPLATE
 app = typer.Typer(
     add_completion=False,
     no_args_is_help=True,
-    help="mlfactory — a config-driven churn/retention analysis tool.",
+    help="mlfactory — an LLM-orchestrated ML factory: a deterministic, tested CLI for the "
+    "data->model pipeline, with a B2B SaaS churn reference domain.",
 )
 
 
 @app.callback()
 def main() -> None:
-    """mlfactory — a config-driven churn/retention analysis tool.
+    """mlfactory — an LLM-orchestrated ML factory (deterministic tested CLI + typed lineage
+    artifacts), with a B2B SaaS churn reference domain.
 
     A callback is defined so Typer keeps subcommand mode even while only one
     command exists; without it, a single-command Typer app treats the command

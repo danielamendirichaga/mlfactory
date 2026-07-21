@@ -1,5 +1,10 @@
 # The ML Factory — An Architecture Blueprint for an LLM-Orchestrated Machine-Learning Pipeline
 
+> 📐 **This is the design blueprint, not the code.** [mlfactory](README.md) (this repo) is a working,
+> fully-tested implementation of it. To understand or run the project, start with the
+> [README](README.md) or the plain-language [explainer](ml-factory-explained.md); read this document for
+> the *why* behind the architecture and the patterns it's built on.
+
 > **Complete.** Reverse-engineered from a production fintech ML pipeline via a parallel teardown of its command playbooks, sub-agent prompts, deterministic CLI source, shared specs/schemas, and MCP-adapter + bundle-build repos. Abstracted for reuse; secrets redacted at source.
 
 ---

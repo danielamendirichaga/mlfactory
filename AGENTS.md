@@ -2,6 +2,7 @@
 
 > Keystone file: how this project works. Auto-loads every session. Keep it current.
 > Repo: https://github.com/danielamendirichaga/mlfactory (private) · Issues track the roadmap.
+> **New to the project?** Read [`README.md`](README.md) first — this file is the contributor/agent guide.
 
 ## The one idea
 An **LLM-orchestrated ML factory**: the AI decides and judges; a **deterministic, unit-tested CLI**

@@ -1,5 +1,13 @@
 # Reuse Map — churnpilot → ML Factory
 
+> ℹ️ **Historical planning artifact — optional reading.** This is the file-by-file plan written *before*
+> mlfactory was built, mapping which parts of the author's
+> [churnpilot](https://github.com/danielamendirichaga/churnpilot) to lift, upgrade, or rebuild. It has
+> since been **fully executed** — see [`STATUS.md`](STATUS.md) and [`CHANGELOG.md`](CHANGELOG.md) for what
+> actually shipped. Kept for provenance; **not needed to understand or use the project** (for that, start
+> with the [README](README.md)). The "open decisions" in §8 were all resolved: generic factory · name
+> `mlfactory` · MVP-core-first · fresh repo.
+
 > **Purpose.** A concrete, file-by-file plan for building the ML Factory (`ml-factory-architecture.md`)
 > by lifting the proven parts of **churnpilot** (`../AI&DS_lab`) instead of starting from zero. Every
 > churnpilot file is tagged **KEEP / UPGRADE / REBUILD / DOMAIN / DROP**, mapped to a factory layer, with
