@@ -65,10 +65,13 @@ high-stakes port. The metric/threshold set lives behind a domain profile.
 **Decision:** a **read-only-in-depth** data-source adapter and a server-side **inference** adapter as
 MCP servers (or SDK-tool equivalents), fronted by one auth gateway. These are the most swappable
 parts; keep the interface, swap the implementation.
-**Consequences:** the compute/contract spine is unaffected by the transport. (Planned — issue #5.)
+**Consequences:** the compute/contract spine is unaffected by the transport. **(Deferred — largely
+unnecessary for a local synthetic project: `source.py` is the data adapter and Claude Code is the
+inference. Add a data-source MCP only to reach a real external DB.)**
 
 ## ADR-008 — Content-sha bundle distribution; library and prompts version independently
 **Context:** the factory ships prompts + a Python library to many workstations.
 **Decision:** deterministic content-sha bundles behind an installer; the declarative layer (prompts)
 and the deterministic layer (CLI library) version separately.
-**Consequences:** idempotent re-sync; ship a new CLI without touching a prompt. (Planned — issue #6.)
+**Consequences:** idempotent re-sync; ship a new CLI without touching a prompt. **(Dropped — out of
+scope: mlfactory ships as a `uv build` wheel + the repo, not to a fleet. Issue #6 closed.)**

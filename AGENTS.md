@@ -27,10 +27,10 @@ the full agent layer (#10–#12, `.claude/`), and Optuna hp-search + `hist_gbm` 
 - **AI proposes, human decides.** Recommendations live as tested rules (`recommend.py`), not an LLM.
 
 ## Key files (map)
-- `mlfactory/compute/` — `metrics` · `profile` · `split` · `model` · `compare` · `evaluate` (generic core)
+- `mlfactory/compute/` — `metrics` · `profile` (+`scan_leakage`) · `split` · `model` · `compare` · `evaluate` · `engineer`(+`engineer_transforms`) · `hp_search` (generic core)
 - `mlfactory/domains/saas/` — `generate` · `policy` · `uplift` · `qini` · `monitor` (B2B SaaS reference domain)
-- `mlfactory/` — `config.py` · `artifacts.py` (typed lineage contracts) · `source.py` · `validate.py`
-  · `recommend.py` · `charts.py` · `report.py` · `cli.py`
+- `mlfactory/` — `config.py` · `artifacts/` (typed lineage contracts + `validate-artifact` + schemas) ·
+  `source.py` · `validate.py` · `recommend.py` · `model_card.py` · `charts.py` · `report.py` · `cli.py`
 - `tests/` — 216 green tests (one file per module + capstones + a CLI pipeline E2E)
 - `.claude/` — the agent layer (L4/L5): `commands/` orchestrator playbooks + `agents/` subagents (see `.claude/README.md`)
 - `docs/` — `PRD.md` + `ADRs.md` + `example-feature-spec.yaml`

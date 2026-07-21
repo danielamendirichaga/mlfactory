@@ -8,20 +8,20 @@ where every number is reproducible, every artifact is lineage-verified, and the 
 substitutes for a computation. Architecture blueprint: [`ml-factory-architecture.md`](ml-factory-architecture.md)
 (plain-language intro: [`ml-factory-explained.md`](ml-factory-explained.md)).
 
-> **Status: in progress — bootstrapping the deterministic core.** mlfactory is being built by lifting the
-> proven, tested compute core of [churnpilot](../AI&DS_lab) (a churn/retention analysis tool built to the
-> same thesis) and generalizing it into a domain-agnostic factory. **A B2B SaaS account-churn
-> domain is the bundled reference domain** that exercises the pipeline end-to-end — an account-month
-> panel (product usage, seats, MRR, logins, discounts, support) with churn as the target and a
-> retention-offer uplift layer; rich enough to add expansion/upsell as a second target later.
+> **Status: complete.** Bootstrapped from the author's own [churnpilot](../AI&DS_lab) (a churn/retention
+> tool built to the same thesis) and generalized into a domain-agnostic factory. A **B2B SaaS
+> account-churn** domain is the bundled reference domain that exercises the pipeline end-to-end — an
+> account-month panel (product usage, seats, MRR, logins, discounts, support) with churn as the target
+> and a retention-offer uplift layer.
 >
-> **Done:** the lifted deterministic core is green (metric suite, split + leakage guard, model menu,
-> stability-based selection, held-out evaluation, typed artifacts with `parent_sha256` lineage, the B2B
-> SaaS reference domain) — 168 tests passing.
-> **Roadmap** (see [`REUSE-MAP.md`](REUSE-MAP.md)): heavy-tier contracts (`validate-artifact` lineage
-> walker + versioning + delete-on-failure), a standalone feature-engineering stage, an Optuna
-> hyper-parameter search, and the LLM orchestration layer (per-stage skills + specialist subagents + MCP
-> data/inference adapters).
+> **What's built** — the deterministic compute core (metric suite, split + leakage guard, model menu,
+> stability-based selection, held-out evaluation, Optuna TPE hp-search); the heavy contract tier
+> (markdown-frontmatter artifacts + `validate-artifact` lineage-walk/probe + `export-schemas`); the
+> standalone leakage-safe feature-engineering stage; the CLI tool surface (`--json`, `gen-model-card`,
+> `leakage-scan`, `advise --json`); and the full **agent layer** under [`.claude/`](.claude/README.md)
+> (per-stage orchestrator playbooks + judgment subagents + human-in-the-loop gates). **216 tests green.**
+> Deferred / out of scope: MCP adapters (the local loader is the data adapter, Claude Code is the
+> inference) and bundle distribution. See [`STATUS.md`](STATUS.md) and [`docs/PRD.md`](docs/PRD.md).
 
 ---
 
@@ -61,8 +61,20 @@ uv pip install --python .venv pytest ruff mypy types-PyYAML
 .venv/bin/pytest -q                        # the lifted core, green
 ```
 
-The generic factory CLI (`mlfactory <command>`) and the B2B SaaS reference-domain demo are being wired up
-per the roadmap. See [`REUSE-MAP.md`](REUSE-MAP.md) for the build plan.
+Then drive the pipeline via the CLI (or the agent layer's `/mlfactory-run` playbook):
+
+```bash
+mlfactory init                                  # scaffold churn.yaml (synthetic SaaS domain by default)
+mlfactory leakage-scan --config churn.yaml      # tiered leakage risks — flags the planted trap
+mlfactory split --config churn.yaml --strategy time --out-dir data/splits
+mlfactory train --train data/splits/train.parquet --config churn.yaml --model logistic --json
+mlfactory evaluate --model data/model.pkl --test data/splits/test.parquet --config churn.yaml
+mlfactory gen-model-card --card data/model.card.json --eval data/eval-report.json
+```
+
+Plus `engineer-features` (Stage 4) + `validate-artifact` for the leakage-safe feature stage, and
+`train --optuna` for a seeded Optuna search. See [`AGENTS.md`](AGENTS.md) for the full command map and
+the [`.claude/`](.claude/README.md) agent layer.
 
 ---
 

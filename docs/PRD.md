@@ -26,7 +26,7 @@ playbooks + specialist subagents · L1 data/inference adapters · L6 bundle dist
 | Standalone feature-engineering: closed transform registry, fit-on-train/apply-outward, `feature-spec` | ✅ #2 |
 | Model menu + baseline floor + stability-based selection | ✅ lifted |
 | Held-out evaluation: union metric pack + slices + calibration | ✅ lifted |
-| Hyper-parameter search (Optuna TPE) + GBM engines | ⏳ #4 |
+| Hyper-parameter search (Optuna TPE) + `hist_gbm` engine | ✅ #4 |
 
 ## 4. Layer 2 — contracts & state (the spine)
 *Acceptance = schema/lineage checks.*
@@ -36,21 +36,23 @@ playbooks + specialist subagents · L1 data/inference adapters · L6 bundle dist
 | Heavy `ArtifactBase` (markdown-frontmatter, lineage `parent`, `verification`, versioning) | ✅ #1 |
 | `validate-artifact --walk-lineage --probe-output` + delete-on-failure rollback | ✅ #1 (walker/probe) |
 | `export-schemas --check` (JSON-Schema CI-synced to the pydantic source) | ✅ #1 |
-| Stage artifacts: `saved-dataset` ✅ · `feature-spec` ✅ · `dataset`/`model` | ⏳ as stages land |
+| Stage artifacts: `saved-dataset` · `feature-spec` · `eda-exploration` ✅ · `dataset`/`model` heavy artifacts | ⏳ (model stage uses the lifted `ModelCard`) |
 
 ## 5. Layer 3 — the CLI tool surface
 *Acceptance = CLI E2E tests.*
 
 | Requirement | Status |
 |---|---|
-| One command per capability; `--json` machine output + structured errors (subagents shell out to this) | ✅ #3 (train/engineer-features; rolling out) |
+| One command per capability; `--json` machine output + structured errors (the tool surface subagents shell out to) | ✅ #3 (train · engineer-features · advise · leakage-scan) |
 | `gen-model-card` (markdown model card — the DS go/no-go surface) | ✅ #3 |
 | `validate-artifact`, `export-schemas`, `engineer-features` | ✅ #1–#2 |
 
-## 6. Layer 4/5 — agent behavior (planned, issue #5)
-Multi-agent orchestration (ADR-001): one playbook per stage; specialist subagents (target-designer,
-leakage-scanner, model-recommender + no-retry CLI-wrappers); **AI proposes, human decides** at
-interactive gates; the deterministic-tool boundary (ADR-002) and adversarial-verify discipline.
+## 6. Layer 4/5 — agent behavior (✅ #10–#12, epic #5 complete)
+Multi-agent orchestration (ADR-001), under `.claude/`: the `/mlfactory-run` + `/mlfactory-eda`
+orchestrator playbooks; judgment subagents (`leakage-scanner`, `model-recommender`, `column-profiler`)
++ no-retry CLI-wrappers; and the human-in-the-loop gates (`/mlfactory-gates`, `mlfactory-advisor`) —
+**AI proposes, human decides**. The deterministic-tool boundary (ADR-002) and adversarial-verify
+discipline throughout.
 
 ## 7. The reference domain (B2B SaaS account churn)
 A deterministic synthetic account-month panel (seats/MRR/product-usage/logins/discounts/support) with
@@ -62,6 +64,7 @@ retention-offer uplift layer — so every stage can be exercised end-to-end on s
 - Not a production MLOps platform (though the heavy contract tier is a clean bolt-on toward one).
 - No real customer data / PII — the reference domain is synthetic.
 
-## 9. Requirements → issues
-Contracts/CLI spine (#1, #3) · feature stage (#2) · reorg/decouple (#7, done) · compute depth (#4) ·
-agent layer (#5) · distribution (#6). Live state: [`../STATUS.md`](../STATUS.md).
+## 9. Requirements → issues (all closed)
+Contracts/CLI spine (#1, #3) · feature stage (#2) · reorg/decouple (#7) · compute depth (#4) · agent
+layer (#10–#12, epic #5). Bundle distribution (#6) dropped as out of scope; MCP adapters deferred.
+Live state: [`../STATUS.md`](../STATUS.md).

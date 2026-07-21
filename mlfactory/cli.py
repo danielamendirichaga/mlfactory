@@ -4,6 +4,8 @@ v1 pipeline: init -> generate -> validate -> profile -> metrics -> split -> trai
 compare -> evaluate -> simulate-policy -> report -> monitor.
 v2 (uplift/causal): generate --treatment -> train-uplift -> (uplift-eval, uplift policy).
 Copilot: advise (pre-flight recommendations) and run (interactive, checkpointed pipeline).
+Factory: engineer-features, leakage-scan, validate-artifact, export-schemas, gen-model-card
+(most stage commands take --json). The agent layer lives in .claude/ (see .claude/README.md).
 """
 
 from __future__ import annotations

@@ -37,7 +37,7 @@ the Optuna hp-search + `hist_gbm` compute depth (#4) are all shipped. **Every ro
   the HistGradientBoosting engine in the model menu. +7 tests (216 total).
 
 ## In progress
-- None. Workflow just established; next slice not yet started.
+- None — **mlfactory is complete**; every roadmap issue is closed.
 
 ## Next up
 **All roadmap issues are closed** — #1–#3 (core spine + feature stage + CLI/docs) · #7 (reorg/decouple) ·
@@ -47,7 +47,6 @@ reference domain.
 
 Possible future directions (not planned): lightgbm/catboost engines · the split-before-EDA leakage path ·
 additional reference domains · flipping the repo public.
-2. #4 — Optuna hp-search + GBM engines (compute depth) — *deferred; optional enhancement, pick up anytime.*
 
 **Dropped:** #6 (bundle distribution) — out of scope (fleet distribution; mlfactory ships as a `uv build`
 wheel + the repo). **L1 MCP adapters deferred** — `source.py` (local file loader) IS the data adapter,
