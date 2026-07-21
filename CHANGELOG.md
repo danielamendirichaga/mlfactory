@@ -2,6 +2,18 @@
 
 Append-only log of what changed and when. Newest first.
 
+## 2026-07-21 — #20 (S1) Leak-drop propagation — the confirmed drop reaches the pipeline
+Epic #17 (surface + propagate DS decisions), slice 1. Closes a gap found by *using* the tool: the EDA
+leakage-drop was recorded in the `eda-exploration` artifact but never written to `churn.yaml`, so `train`
+(which reads `config.exclude_columns` via `feature_columns`) silently kept training on the leak.
+- Added `config.set_exclude_columns` (+ `_set_exclude_columns_text`): a comment-preserving, validated,
+  in-place writer for `schema.exclude_columns` (add / remove / set), refusing to write an unreadable config.
+- Added the `exclude-columns` CLI (`--add`/`--remove`/`--set`/`--json`) — records a confirmed leakage-drop
+  into the config.
+- Wired the leakage gate to persist the drop in `/mlfactory-eda`, `/mlfactory-gates`, and `/mlfactory-run`
+  (the decision only takes effect once it's in the config, not the artifact).
+- +8 tests (224 total green); ruff + mypy clean. (Closes #20)
+
 ## 2026-07-21 — #4 Optuna hp-search + hist_gbm engine (compute depth)
 - Added `compute/hp_search.py::optuna_search` — seeded Optuna TPE over a per-family space
   (logistic / rf / xgboost / hist_gbm), CV-AUC scored, winner refit; deterministic (same seed → same

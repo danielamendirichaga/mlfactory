@@ -5,7 +5,8 @@ compare -> evaluate -> simulate-policy -> report -> monitor.
 v2 (uplift/causal): generate --treatment -> train-uplift -> (uplift-eval, uplift policy).
 Copilot: advise (pre-flight recommendations) and run (interactive, checkpointed pipeline).
 Factory: engineer-features, leakage-scan, validate-artifact, export-schemas, gen-model-card
-(most stage commands take --json). The agent layer lives in .claude/ (see .claude/README.md).
+(most stage commands take --json). Decisions: exclude-columns records a confirmed leakage-drop
+into the config so split/train honor it. The agent layer lives in .claude/ (see .claude/README.md).
 """
 
 from __future__ import annotations
@@ -56,6 +57,55 @@ def init(
         raise typer.Exit(code=1)
     path.write_text(CONFIG_TEMPLATE)
     typer.echo(f"Wrote {path}. Edit it to point mlfactory at your data.")
+
+
+@app.command("exclude-columns")
+def exclude_columns_cmd(
+    config: str = typer.Option("churn.yaml", "--config", help="Path to the churn.yaml config."),
+    add: Optional[list[str]] = typer.Option(
+        None, "--add", help="Column to mark as a never-feature (leakage/oracle). Repeatable."
+    ),
+    remove: Optional[list[str]] = typer.Option(
+        None, "--remove", help="Column to un-exclude. Repeatable."
+    ),
+    replace: Optional[list[str]] = typer.Option(
+        None, "--set", help="Replace the whole exclude list with these. Repeatable."
+    ),
+    json_out: bool = typer.Option(False, "--json", help="Emit a machine-readable JSON summary."),
+) -> None:
+    """Record a leakage / never-feature decision — update schema.exclude_columns in the config.
+
+    This is how a confirmed EDA leakage-drop reaches the pipeline: split/train read
+    config.exclude_columns, so the decision has to be written here (the eda-exploration
+    artifact recording it is not enough). Re-run split/train for it to take effect.
+    """
+    from mlfactory.config import ConfigError, set_exclude_columns
+
+    if not (add or remove or replace):
+        typer.echo("Nothing to do — pass --add / --remove / --set.")
+        raise typer.Exit(code=1)
+    try:
+        new = set_exclude_columns(
+            config,
+            add=add or None,
+            remove=remove or None,
+            replace=replace if replace is not None else None,
+        )
+    except ConfigError as exc:
+        typer.echo(str(exc))
+        raise typer.Exit(code=1) from exc
+
+    if json_out:
+        import json
+
+        typer.echo(
+            json.dumps(
+                {"command": "exclude-columns", "config": str(config), "exclude_columns": new}
+            )
+        )
+        return
+    typer.echo(f"exclude_columns → {new or '[]'}  (written to {config})")
+    typer.echo("  split/train read this — re-run them for the change to take effect.")
 
 
 @app.command()

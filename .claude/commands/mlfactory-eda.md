@@ -31,6 +31,9 @@ does; you spawn subagents and exercise judgment on their facts.
 - **AI proposes, human decides** — surface the leakage verdict, the ranked families (with reasons), and
   the baseline, then pause at the **human-in-the-loop gates** (`/mlfactory-gates`; spawn
   `mlfactory-advisor`) for the human to confirm or override. Never silently drop or keep anything.
+  **Once a drop is confirmed, persist it:** `mlfactory exclude-columns --config churn.yaml --add <cols>`.
+  `split`/`train` read `config.exclude_columns`, so writing the drop into the config — not just the
+  `eda-exploration` artifact — is what actually keeps the leak out of the model.
 - **Adversarial on leakage** — default to flagging a suspiciously strong feature until it is proven
   observable at prediction time.
 

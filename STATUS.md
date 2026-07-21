@@ -1,10 +1,12 @@
-# Status — mlfactory (updated 2026-07-20)
+# Status — mlfactory (updated 2026-07-21)
 
 ## Where we are
-**mlfactory is complete.** The deterministic core (#1–#3), the full agent layer (#10–#12, epic #5), and
-the Optuna hp-search + `hist_gbm` compute depth (#4) are all shipped. **Every roadmap issue is closed.**
+**mlfactory's core is complete and shipped** — the deterministic core (#1–#3), the full agent layer
+(#10–#12, epic #5), and the Optuna hp-search + `hist_gbm` depth (#4). A new epic (**#17**) now hardens
+the human-in-the-loop coverage: *surface + propagate the DS decisions* that the back half of the
+pipeline was resolving via silent defaults. **S1 (leak-drop propagation) shipped**; S0 · S2–S6 queued.
 
-**Health:** 216 tests green · ruff + mypy clean · CLI + live pipeline verified · Python 3.11 / uv.
+**Health:** 224 tests green · ruff + mypy clean · CLI + live pipeline verified · Python 3.11 / uv.
 
 ## Done
 - **Bootstrap** — lifted churnpilot's tested deterministic core into `mlfactory` (renamed), fresh repo. (`4ca941c`)
@@ -35,12 +37,18 @@ the Optuna hp-search + `hist_gbm` compute depth (#4) are all shipped. **Every ro
   overrides). +1 test (209 total). **Agent layer (epic #5) complete.**
 - **#4 — Optuna hp-search + hist_gbm** — seeded TPE search (`compute/hp_search.py`, `train --optuna`) +
   the HistGradientBoosting engine in the model menu. +7 tests (216 total).
+- **#20 (S1) — leak-drop propagation** — `set_exclude_columns` + the `exclude-columns` CLI write a
+  confirmed leakage-drop into `config.exclude_columns` (comment-preserving), so `split`/`train` actually
+  honor it; the leakage gate in `/mlfactory-eda` · `/mlfactory-gates` · `/mlfactory-run` now persists the
+  drop. Closes the gap where the decision lived only in the artifact. +8 tests (224 total). (Epic #17)
 
 ## In progress
-- None — **mlfactory is complete**; every roadmap issue is closed.
+- **Epic #17 — surface + propagate DS decisions.** S1 (#20) done. Remaining: **S0** (#19, decision-record
+  foundation) · **S2** (#21, feature-engineering: wire feature-spec→train + construction transforms) ·
+  **S3** (#22, train/select) · **S4** (#23, evaluate) · **S5** (#24, model card) · **S6** (#25, downstream).
 
 ## Next up
-**All roadmap issues are closed** — #1–#3 (core spine + feature stage + CLI/docs) · #7 (reorg/decouple) ·
+**The original roadmap (#1–#12) is closed** — #1–#3 (core spine + feature stage + CLI/docs) · #7 (reorg/decouple) ·
 #4 (Optuna + hist_gbm) · #10–#12 (agent layer, epic #5). mlfactory is a complete, generic, LLM-orchestrated
 ML factory: deterministic tested CLI + heavy lineage artifacts + the agent layer, with a B2B SaaS
 reference domain.
