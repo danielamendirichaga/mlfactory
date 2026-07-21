@@ -21,9 +21,10 @@ the user to run setup (see `AGENTS.md`).
 - **Gate, then continue.** After a stage writes a heavy artifact, spawn the
   `mlfactory-artifact-validator` subagent to run the closing `validate-artifact` gate. On
   `valid: false`, **delete the just-written stage outputs** (delete-on-failure rollback) and halt.
-- **AI proposes, human decides.** This foundation playbook runs the deterministic happy path; the
-  genuine judgment gates (target design, leakage exclusion, model choice) arrive with the EDA stage
-  (#11) and the human-in-the-loop gates (#12).
+- **AI proposes, human decides.** For the judgment moments (leakage exclusion, model choice, ship
+  go/no-go) pause at the **human-in-the-loop gates** — see `/mlfactory-gates` (spawn `mlfactory-advisor`
+  to surface the deterministic recommendation, then wait). The deterministic happy path runs
+  autonomously between gates.
 
 ## Phase flow (each stage via a spawned `mlfactory-stage-runner`)
 1. **Data** — `generate --out data/panel.parquet` (synthetic), then `validate --config churn.yaml`

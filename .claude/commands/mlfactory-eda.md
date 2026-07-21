@@ -29,7 +29,8 @@ does; you spawn subagents and exercise judgment on their facts.
 - **Deterministic checks first, judgment on top, never a rubber stamp** — the leakage-scanner starts
   from the deterministic tiers, then reasons; it does not "eyeball" whether numbers look right.
 - **AI proposes, human decides** — surface the leakage verdict, the ranked families (with reasons), and
-  the baseline; the human confirms/overrides at the gates (#12). Never silently drop or keep anything.
+  the baseline, then pause at the **human-in-the-loop gates** (`/mlfactory-gates`; spawn
+  `mlfactory-advisor`) for the human to confirm or override. Never silently drop or keep anything.
 - **Adversarial on leakage** — default to flagging a suspiciously strong feature until it is proven
   observable at prediction time.
 

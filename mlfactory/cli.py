@@ -796,6 +796,7 @@ def advise(
     config: Path = typer.Option(
         Path("churn.yaml"), "--config", help="Path to the churn.yaml config."
     ),
+    json_out: bool = typer.Option(False, "--json", help="Emit machine-readable JSON (for a gate)."),
 ) -> None:
     """Print the copilot's pre-flight recommendations (features, split, policy) for your data."""
     from mlfactory.compute.profile import profile_frame
@@ -814,6 +815,14 @@ def advise(
         recommend_split(cfg),
         recommend_policy(cfg),
     ]
+
+    if json_out:
+        import json
+
+        typer.echo(
+            json.dumps({"command": "advise", "recommendations": [r.model_dump() for r in recs]})
+        )
+        return
 
     typer.echo(f"mlfactory advises  ({len(df):,} rows)\n")
     for r in recs:

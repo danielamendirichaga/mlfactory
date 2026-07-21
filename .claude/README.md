@@ -13,10 +13,17 @@ Built on Claude Code primitives:
   retry) and, from #11 on, **designers/analyzers** (the LLM judgment — target design, leakage scan,
   model-family ranking).
 
-## What's here (issue #10 — the foundation)
-- `commands/mlfactory-run.md` — `/mlfactory-run`, the pipeline orchestrator (deterministic happy path).
-- `agents/mlfactory-stage-runner.md` — the no-retry CLI-wrapper.
-- `agents/mlfactory-artifact-validator.md` — the closing `validate-artifact` gate.
+## What's here (the agent layer — #10 → #12, complete)
+**Orchestrator playbooks (`commands/`):**
+- `mlfactory-run.md` — `/mlfactory-run`, the deterministic pipeline orchestrator (#10).
+- `mlfactory-eda.md` — `/mlfactory-eda`, the EDA & modeling-design stage (#11).
+- `mlfactory-gates.md` — the human-in-the-loop gates: AI proposes, human decides (#12).
+
+**Subagents (`agents/`):**
+- `mlfactory-stage-runner` — the no-retry CLI-wrapper (deterministic).
+- `mlfactory-artifact-validator` — the closing `validate-artifact` gate.
+- `mlfactory-column-profiler` · `mlfactory-leakage-scanner` · `mlfactory-model-recommender` — EDA judgment (#11).
+- `mlfactory-advisor` — surfaces a deterministic recommendation at a gate (#12).
 
 ## The invariants every part obeys
 - **Deterministic-tool boundary** — no number is ever reasoned out in a prompt; the CLI computes.
@@ -24,6 +31,6 @@ Built on Claude Code primitives:
 - **Gate, then write** — a heavy artifact is provisional until `validate-artifact` passes; delete on failure.
 - **AI proposes, human decides** — judgment gates pause for the human (arriving in #11/#12).
 
-## Roadmap
-#10 foundation (this) → **#11** EDA stage + judgment subagents (leakage-scanner, model-recommender) →
-**#12** human-in-the-loop gates. See the repo's GitHub issues and `STATUS.md`.
+## Status
+The three agent-layer slices — #10 foundation → #11 EDA judgment → #12 human-in-the-loop gates — are
+**complete** (epic #5). See the repo's GitHub issues and `STATUS.md`.
