@@ -79,6 +79,9 @@ architecture rule, key file, or gotcha changed.
 - xgboost needs the OpenMP runtime on macOS: `brew install libomp` (already installed on this machine).
 - Time-aware split is the default; `--strategy random` is opt-in and **wrong for panel data** (entity leakage).
 - Leakage trap: `cancel_page_visits_30d` is planted to spike with churn — `profile`/`train` flag it. Keep it out by recording the drop: `mlfactory exclude-columns --add cancel_page_visits_30d` — this writes `config.exclude_columns`, which `split`/`train` read. The EDA `eda-exploration` artifact recording the drop does **not** by itself enforce it (epic #17 / S1).
+- Feature-spec → model: `engineer-features` writes `data/features/*` (model-ready); `train --engineered`
+  trains on them — imputes/one-hots survivors but does **not** re-scale (the recipe owns preprocessing).
+  Skipping it and training on the raw split is also valid. (epic #17 / S2a)
 - Generic core hardcodes no domain columns — mark never-features via `config.columns.exclude_columns`.
 - Synthetic data only; `data/` is gitignored; never commit real customer data / PII.
 - `mlfactory` = the tool name; the bundled domain is B2B SaaS account churn (NOT streaming/fintech).

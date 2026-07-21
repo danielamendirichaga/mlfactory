@@ -34,19 +34,20 @@ the user to run setup (see `AGENTS.md`).
    --val data/splits/val.parquet --test data/splits/test.parquet --spec docs/example-feature-spec.yaml
    --output-dir data/features --json`. **Then gate:** spawn `mlfactory-artifact-validator` on
    `data/features/feature-spec.md` (`--walk-lineage --probe-output`).
-4. **Train** — `train --train data/splits/train.parquet --config churn.yaml --model logistic
-   --model-out data/model.pkl --json`. *(Precondition: any leakage drop confirmed in `/mlfactory-eda`
-   must already be in `config.exclude_columns` via `mlfactory exclude-columns`, or training silently
-   includes the leak.)*
-5. **Evaluate** — `evaluate --model data/model.pkl --test data/splits/test.parquet --config churn.yaml
-   --report-out data/eval-report.json`.
+4. **Train** — `train --train data/features/train.parquet --config churn.yaml --model logistic
+   --engineered --model-out data/model.pkl --json` (trains on step 3's engineered output; `--engineered`
+   passes its model-ready features through without re-scaling). *(Precondition: any leakage drop confirmed
+   in `/mlfactory-eda` must already be in `config.exclude_columns` via `mlfactory exclude-columns`, or
+   training silently includes the leak.)*
+5. **Evaluate** — `evaluate --model data/model.pkl --test data/features/test.parquet --config churn.yaml
+   --report-out data/eval-report.json` (score on the engineered test split).
 6. **Model card** — `gen-model-card --card data/model.card.json --eval data/eval-report.json
    --output data/model-card.md`.
 
-> **Honest scope note.** In this foundation slice the model stage trains on the leakage-guarded
-> **split** (step 2), while feature engineering (step 3) emits and *validates* a `feature-spec`
-> artifact alongside it. Fully feeding the engineered dataset into training is the dataset/model
-> stage-integration slice — not this one.
+> **Feature flow (S2a, #21).** The model stage trains on the **engineered** dataset (step 3's
+> `data/features/*`) via `train --engineered`, which passes the recipe's model-ready features through
+> without re-scaling (the recipe owns preprocessing). Skipping `engineer-features` and training on the
+> raw split stays valid — the per-family preprocessor handles raw data — so choose per run.
 >
 > **Leakage note.** With `features: auto` on the SaaS reference domain, training includes the planted
 > `cancel_page_visits_30d` trap — the model scores a giveaway AUC ≈ 1.0, and `train` prints a leakage

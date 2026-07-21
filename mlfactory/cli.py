@@ -368,6 +368,12 @@ def train(
     early_stopping: bool = typer.Option(
         False, "--early-stopping", help="XGBoost early stopping (mode-aware inner-val)."
     ),
+    engineered: bool = typer.Option(
+        False,
+        "--engineered",
+        help="Train on an engineered feature-spec output (from engineer-features) — pass its "
+        "features through (no re-scaling); the recipe owns preprocessing.",
+    ),
     optuna: bool = typer.Option(
         False, "--optuna", help="Optuna TPE hyperparameter search (seeded)."
     ),
@@ -408,6 +414,7 @@ def train(
             calibrate=calibrate,
             tune=tune,
             early_stopping=early_stopping,
+            engineered=engineered,
             optuna=optuna,
             n_trials=trials,
             seed=seed,
@@ -427,6 +434,7 @@ def train(
             (" +calibrated", calibrate),
             (" +tuned", tune),
             (" +early-stop", early_stopping),
+            (" +engineered", engineered),
             (" +optuna", optuna),
         )
         if on

@@ -42,7 +42,9 @@ def gen_model_card(
     mc = model_card
     em = (eval_report or {}).get("metrics", {})
     fam = mc.get("model_family", "model")
-    flags = [k for k in ("tuned", "smote", "calibrated", "early_stopping") if mc.get(k)]
+    flags = [
+        k for k in ("tuned", "smote", "calibrated", "early_stopping", "engineered") if mc.get(k)
+    ]
     flag_s = f" (+{', '.join(flags)})" if flags else ""
     lines: list[str] = [f"# Model Card — {fam}", ""]
 
@@ -61,7 +63,8 @@ def gen_model_card(
         "",
         f"- Input content hash (`parent_sha256`): `{mc.get('parent_sha256', 'n/a')}`",
         f"- Fit options: tuned={mc.get('tuned')}, smote={mc.get('smote')}, "
-        f"calibrated={mc.get('calibrated')}, early_stopping={mc.get('early_stopping')}",
+        f"calibrated={mc.get('calibrated')}, early_stopping={mc.get('early_stopping')}, "
+        f"engineered={mc.get('engineered')}",
         "",
     ]
 
