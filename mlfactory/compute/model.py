@@ -49,6 +49,7 @@ class ModelCard(ArtifactBase):
     smote: bool
     calibrated: bool
     early_stopping: bool = False
+    engineered: bool = False
     n_features: int
     features: list[str]
     hyperparams: dict
@@ -109,6 +110,24 @@ def _preprocessor(numeric: list[str], categorical: list[str], model: str) -> Col
                 ("onehot", OneHotEncoder(handle_unknown="ignore", sparse_output=False)),
             ]
         )
+    return ColumnTransformer(
+        [("num", num, numeric), ("cat", cat, categorical)],
+        remainder="drop",
+        verbose_feature_names_out=False,
+    )
+
+
+def _engineered_preprocessor(numeric: list[str], categorical: list[str]) -> ColumnTransformer:
+    """Engineered mode: the feature-spec recipe already produced model-ready features, so **trust its
+    scaling** — impute numerics for any leftover nulls but do NOT re-scale them (that would
+    double-transform the recipe), and one-hot any raw categoricals the recipe left behind."""
+    num = SkPipeline([("impute", SimpleImputer(strategy="median"))])
+    cat = SkPipeline(
+        [
+            ("impute", SimpleImputer(strategy="most_frequent")),
+            ("onehot", OneHotEncoder(handle_unknown="ignore", sparse_output=False)),
+        ]
+    )
     return ColumnTransformer(
         [("num", num, numeric), ("cat", cat, categorical)],
         remainder="drop",
@@ -313,6 +332,7 @@ def train_model(
     calibrate: bool = False,
     tune: bool = False,
     early_stopping: bool = False,
+    engineered: bool = False,
     optuna: bool = False,
     n_trials: int = 30,
     seed: int = 42,
@@ -329,11 +349,20 @@ def train_model(
         raise ModelError(
             "--optuna cannot be combined with --tune/--early-stopping/--smote/--calibrate"
         )
+    if engineered and (tune or optuna or early_stopping):
+        raise ModelError(
+            "engineered mode does not yet support --tune/--optuna/--early-stopping "
+            "(they build their own preprocessing)"
+        )
     numeric, categorical = feature_columns(train_df, config)
     cols = config.columns
     X = train_df[numeric + categorical]
     y = (train_df[cols.target_col] == cols.positive_value).astype(int).to_numpy()
-    pre = _preprocessor(numeric, categorical, model)
+    pre = (
+        _engineered_preprocessor(numeric, categorical)
+        if engineered
+        else _preprocessor(numeric, categorical, model)
+    )
 
     if optuna:
         from mlfactory.compute.hp_search import optuna_search
@@ -382,6 +411,7 @@ def train_model(
         smote=smote,
         calibrated=calibrate,
         early_stopping=early_stopping,
+        engineered=engineered,
         n_features=len(numeric) + len(categorical),
         features=numeric + categorical,
         hyperparams=hyperparams,

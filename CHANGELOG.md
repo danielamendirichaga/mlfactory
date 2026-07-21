@@ -2,6 +2,21 @@
 
 Append-only log of what changed and when. Newest first.
 
+## 2026-07-21 — #21 (S2a) Feature-spec → train — an engineered recipe reaches the model
+Epic #17, slice 2a. Before this, `train` only read the raw split, so `engineer-features` produced a
+`feature-spec` that never touched the model. Now `train --engineered` trains on the engineered output.
+- `train_model(engineered=True)` uses a passthrough-style preprocessor (`_engineered_preprocessor`):
+  imputes leftover nulls + one-hots any surviving raw categoricals, but does NOT re-scale numerics —
+  the recipe owns scaling, so re-scaling would double-transform. `evaluate` works unchanged (the fitted
+  pipeline scores the engineered test split).
+- `ModelCard.engineered` records it (shown on the card's Fit-options line); `--engineered` on the `train`
+  CLI. Rejects `--tune`/`--optuna`/`--early-stopping` in engineered mode for now (they build their own
+  preprocessing) — deferred.
+- `/mlfactory-run` now trains + evaluates on `data/features/*` (the engineered dataset); the stale
+  "engineered dataset not fed to training" scope note is gone.
+- Verified end-to-end (engineer-features → train --engineered → evaluate → model card). +8 tests
+  (241 total green); ruff + mypy clean. (Part of #21 — S2b: construction transforms + FE gate, next.)
+
 ## 2026-07-21 — #19 (S0) Decision-record foundation — gates write it, stages read it
 Epic #17, slice 0 — the spine the rest of the epic builds on.
 - Added a typed `DecisionRecord` on `ChurnConfig` (`decisions:` block): `modeling` (primary_metric /

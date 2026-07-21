@@ -4,10 +4,10 @@
 **mlfactory's core is complete and shipped** — the deterministic core (#1–#3), the full agent layer
 (#10–#12, epic #5), and the Optuna hp-search + `hist_gbm` depth (#4). A new epic (**#17**) now hardens
 the human-in-the-loop coverage: *surface + propagate the DS decisions* that the back half of the
-pipeline was resolving via silent defaults. **S1 (leak-drop) + S0 (decision-record foundation) shipped**;
-S2–S6 queued.
+pipeline was resolving via silent defaults. **S1 (leak-drop), S0 (decision record), and S2a
+(feature-spec→train) shipped**; S2b + S3–S6 queued.
 
-**Health:** 233 tests green · ruff + mypy clean · CLI + live pipeline verified · Python 3.11 / uv.
+**Health:** 241 tests green · ruff + mypy clean · CLI + live pipeline verified · Python 3.11 / uv.
 
 ## Done
 - **Bootstrap** — lifted churnpilot's tested deterministic core into `mlfactory` (renamed), fresh repo. (`4ca941c`)
@@ -46,10 +46,14 @@ S2–S6 queued.
   (modeling/evaluation/policy/monitoring + caveats) whose defaults reproduce every pre-#17 hardcoded
   value; `set_decision` + the `record-decision`/`decisions` CLI write/read it. Zero behavior change —
   the spine S3/S4/S6 read from. +9 tests (233 total). (Epic #17)
+- **#21 (S2a) — feature-spec → train** — `train --engineered` trains on the `engineer-features` output
+  (model-ready): a passthrough-style preprocessor imputes leftover nulls + one-hots surviving
+  categoricals but does **not** re-scale (the recipe owns preprocessing); `ModelCard.engineered`. An
+  EDA-informed recipe now reaches the model (verified end-to-end). +8 tests (241 total). (Part of #21)
 
 ## In progress
-- **Epic #17 — surface + propagate DS decisions.** S1 (#20) + S0 (#19) done. Remaining: **S2** (#21,
-  feature-engineering: wire feature-spec→train + construction transforms) · **S3** (#22, train/select) ·
+- **Epic #17 — surface + propagate DS decisions.** S1 (#20) + S0 (#19) + **S2a** (#21, feature-spec→train)
+  done. Remaining: **S2b** (#21, construction transforms + FE gate) · **S3** (#22, train/select) ·
   **S4** (#23, evaluate) · **S5** (#24, model card) · **S6** (#25, downstream).
 
 ## Next up
