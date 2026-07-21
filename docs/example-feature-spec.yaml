@@ -1,0 +1,28 @@
+# Example feature spec for the SaaS reference domain — consumed by `mlfactory engineer-features --spec`.
+# Fit-on-train / apply-outward; the model-ready postcondition rejects any NaN/non-numeric output.
+# (In the full factory, the EDA feature-proposer drafts this and the DS locks it — issue #11.)
+transforms:
+  - id: 1
+    name: impute product usage
+    type: impute
+    inputs: [product_usage_hours_30d]
+    params: {strategy: median}
+  - id: 2
+    name: scale tenure
+    type: standard_scaler
+    inputs: [tenure_months]
+    output_column: tenure_scaled
+  - id: 3
+    name: scale usage
+    type: standard_scaler
+    inputs: [product_usage_hours_30d]
+    output_column: usage_scaled
+  - id: 4
+    name: one-hot plan tier
+    type: one_hot
+    inputs: [plan_tier]
+  - id: 5
+    name: date parts of observation month
+    type: date_parts
+    inputs: [observation_month]
+    params: {parts: [year, month], drop_source: false}

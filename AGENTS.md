@@ -10,8 +10,8 @@ number is reproducible, every artifact is lineage-verified, and the LLM never si
 for a computation. Full blueprint: `ml-factory-architecture.md`. Build plan: `REUSE-MAP.md`.
 
 **Status:** MVP deterministic core, bootstrapped from churnpilot (`../AI&DS_lab`) and generalized.
-Currently **168 tests green, ruff + mypy clean**. The LLM orchestration layer is not built yet
-(see issue #5). See `STATUS.md` for the live snapshot.
+Currently **204 tests green, ruff + mypy clean**. The agent-layer **foundation** is built (#10 —
+`.claude/`); the EDA judgment subagents and human-in-the-loop gates are #11/#12. See `STATUS.md`.
 
 ## Architecture & conventions
 - **Layering — core ← domain ← app** (dependency direction, enforced by discipline):
@@ -31,8 +31,9 @@ Currently **168 tests green, ruff + mypy clean**. The LLM orchestration layer is
 - `mlfactory/domains/saas/` — `generate` · `policy` · `uplift` · `qini` · `monitor` (B2B SaaS reference domain)
 - `mlfactory/` — `config.py` · `artifacts.py` (typed lineage contracts) · `source.py` · `validate.py`
   · `recommend.py` · `charts.py` · `report.py` · `cli.py`
-- `tests/` — 168 green tests (one file per module + capstones)
-- `docs/` — PRD/ADRs (to be written — issue #3)
+- `tests/` — 204 green tests (one file per module + capstones + a CLI pipeline E2E)
+- `.claude/` — the agent layer (L4/L5): `commands/` orchestrator playbooks + `agents/` subagents (see `.claude/README.md`)
+- `docs/` — `PRD.md` + `ADRs.md` + `example-feature-spec.yaml`
 - `REUSE-MAP.md` — churnpilot→factory reuse plan · `ml-factory-architecture.md` — the blueprint
 
 ## Commands
