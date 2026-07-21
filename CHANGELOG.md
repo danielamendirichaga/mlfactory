@@ -2,6 +2,15 @@
 
 Append-only log of what changed and when. Newest first.
 
+## 2026-07-21 — #12 Human-in-the-loop gates (AI proposes, human decides) — agent layer complete
+- Added `advise --json` (structured deterministic recommendations a gate parses), the
+  `.claude/commands/mlfactory-gates.md` playbook (the four gates — target / leakage exclusion / model
+  choice / ship go/no-go — + the DS-leads posture + override flags), and the `mlfactory-advisor`
+  subagent (propose {what/why/action} at a gate, then wait for the human).
+- Wired the gates into the `/mlfactory-run` and `/mlfactory-eda` orchestrators; `.claude/README.md`
+  marks the agent layer complete.
+- +1 test (209 total green); ruff + mypy clean. **Closes #12 — and completes the agent layer (epic #5).**
+
 ## 2026-07-21 — #11 EDA judgment stage (leakage-scan + eda-exploration + judgment subagents)
 - Deterministic substrate: `compute/profile.py::scan_leakage` tiers target correlations into structured
   leakage_risks (|corr|>0.99 perfect_predictor/drop; 0.9–0.99 near_perfect/inspect), plus a `leakage-scan`
