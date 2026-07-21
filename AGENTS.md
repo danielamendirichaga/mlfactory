@@ -26,6 +26,9 @@ the full agent layer (#10–#12, `.claude/`), and Optuna hp-search + `hist_gbm` 
 - **Config-driven:** everything reads the `churn.yaml`-style config — no hardcoded column names.
 - **The tested metric core (`compute/metrics.py`) imports only numpy/pandas** — never sklearn/xgboost.
 - **AI proposes, human decides.** Recommendations live as tested rules (`recommend.py`), not an LLM.
+- **DS decisions live in `config.decisions`** — a typed `DecisionRecord` (metric/threshold/economics/
+  drift/caveats) whose defaults reproduce pre-#17 behavior. Gates **write** it (`record-decision`,
+  `exclude-columns`); stages **read** `config.decisions.*`. Surface + propagate = epic #17.
 
 ## Key files (map)
 - `mlfactory/compute/` — `metrics` · `profile` (+`scan_leakage`) · `split` · `model` · `compare` · `evaluate` · `engineer`(+`engineer_transforms`) · `hp_search` (generic core)
@@ -43,7 +46,7 @@ the full agent layer (#10–#12, `.claude/`), and Optuna hp-search + `hist_gbm` 
 - lint/fmt:`.venv/bin/ruff check .`  /  `.venv/bin/ruff format .`
 - types:   `.venv/bin/mypy mlfactory`
 - run:     `.venv/bin/mlfactory <cmd>`  (init | generate | validate | profile | metrics | split | train | compare | evaluate | simulate-policy | report | monitor | advise | run | version)
-- factory: `engineer-features` (Stage 4) · `leakage-scan` (EDA) · `validate-artifact --walk-lineage --probe-output` · `export-schemas [--check]` · `gen-model-card` · `exclude-columns` (record a confirmed leakage-drop → `config.exclude_columns`). Stage commands take `--json` (the tool surface subagents shell out to).
+- factory: `engineer-features` (Stage 4) · `leakage-scan` (EDA) · `validate-artifact --walk-lineage --probe-output` · `export-schemas [--check]` · `gen-model-card` · `exclude-columns` (record a confirmed leakage-drop → `config.exclude_columns`) · `record-decision`/`decisions` (write/read the `config.decisions` record). Stage commands take `--json` (the tool surface subagents shell out to).
 - v2 uplift: `generate --treatment` | `train-uplift` | `uplift-eval` | `policy-contrast`
 - build:   `uv build`  → an installable wheel (this is the "release" — there is NO web deploy)
 

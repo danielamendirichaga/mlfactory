@@ -72,14 +72,77 @@ class ColumnMap(BaseModel):
     exclude_columns: list[str] = []
 
 
+class ModelingDecisions(BaseModel):
+    """Train & select knobs. Defaults reproduce today's hardcoded behavior (epic #17 / S0)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    primary_metric: Literal["auc", "pr_auc", "ks", "top_decile_lift"] = "auc"
+    imbalance: Literal["none", "smote"] = "none"
+    calibrate: bool = False
+    tune: Literal["none", "grid", "optuna"] = "none"
+    max_auc_drop: float = 0.05  # compare._MAX_AUC_DROP (stability gate)
+    max_score_psi: float = 0.2  # compare._MAX_SCORE_PSI (stability gate)
+
+
+class EvaluationDecisions(BaseModel):
+    """Held-out evaluation + ship knobs."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    threshold: float = 0.5  # evaluate_model default operating point
+    min_auc: float = 0.65  # recommend_ship discrimination floor
+    max_ece: float = 0.10  # recommend_ship calibration bar
+    segment_cols: list[str] | None = None  # None → auto (plan_tier, region)
+
+
+class PolicyDecisions(BaseModel):
+    """Downstream retention-policy economics."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    save_rate: float = 0.3  # simulate-policy default
+    offer_cost: float = 5.0  # simulate-policy default ($)
+    budget: float | None = None
+    targeting: Literal["risk", "uplift"] = "risk"
+
+
+class MonitoringDecisions(BaseModel):
+    """Drift-monitoring knobs."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    drift_threshold: float = 0.25  # monitor_drift default PSI bar
+
+
+class DecisionRecord(BaseModel):
+    """The DS's confirmed choices for a run. Gates WRITE here; stages READ here.
+
+    Every field defaults to the value the pipeline hardcoded before epic #17, so a config
+    without a ``decisions:`` block behaves exactly as before. Each later slice (S3/S4/S6) swaps
+    a hardcoded default for the matching field here — behavior-preserving until a gate overrides
+    it. ``caveats`` accumulate across gates and propagate to the model card (S5).
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    modeling: ModelingDecisions = Field(default_factory=ModelingDecisions)
+    evaluation: EvaluationDecisions = Field(default_factory=EvaluationDecisions)
+    policy: PolicyDecisions = Field(default_factory=PolicyDecisions)
+    monitoring: MonitoringDecisions = Field(default_factory=MonitoringDecisions)
+    caveats: list[str] = []
+
+
 class ChurnConfig(BaseModel):
-    """The whole ``churn.yaml``: a data source + a column mapping."""
+    """The whole ``churn.yaml``: a data source, a column mapping, and the DS decision record."""
 
     model_config = ConfigDict(extra="forbid", populate_by_name=True)
 
     source: SourceConfig
     # YAML key is ``schema:``; exposed as ``.columns`` to avoid shadowing BaseModel.schema.
     columns: ColumnMap = Field(alias="schema")
+    # DS decisions (metric/threshold/economics/…). Absent block → defaults = pre-#17 behavior.
+    decisions: DecisionRecord = Field(default_factory=DecisionRecord)
 
 
 def load_config(path: str | Path) -> ChurnConfig:
@@ -174,6 +237,60 @@ def set_exclude_columns(
     return new
 
 
+def _write_decisions_block(text: str, decisions: dict) -> str:
+    """Replace or append the tool-managed ``decisions:`` block in a churn.yaml *text*.
+
+    The block carries no comments (it is machine-managed), so — unlike source/schema — it is safe
+    to re-serialize wholesale; the source/schema blocks and their onboarding comments are untouched.
+    """
+    block = yaml.safe_dump({"decisions": decisions}, sort_keys=False, default_flow_style=False)
+    lines = text.splitlines()
+    start = next((i for i, ln in enumerate(lines) if re.match(r"^decisions\s*:", ln)), None)
+    if start is None:
+        return text.rstrip("\n") + "\n\n" + block  # append after a blank line
+    end = len(lines)
+    for j in range(start + 1, len(lines)):
+        if re.match(r"^[^\s#]", lines[j]):
+            end = j
+            break
+    new_lines = lines[:start] + block.rstrip("\n").splitlines() + lines[end:]
+    return "\n".join(new_lines) + "\n"
+
+
+def set_decision(path: str | Path, key: str, value: str) -> DecisionRecord:
+    """Record a DS decision into the config's ``decisions:`` block.
+
+    ``key`` is dotted (e.g. ``evaluation.threshold``, ``modeling.primary_metric``); ``value`` is
+    coerced to the field's type by pydantic. An unknown key or an invalid value raises
+    :class:`ConfigError` and the file is left untouched. This is the write half of the decision
+    record — gates persist a confirmed choice here, the deterministic stages read it back from
+    :attr:`ChurnConfig.decisions`. Returns the new record.
+    """
+    path = Path(path)
+    cfg = load_config(path)
+    data = cfg.decisions.model_dump()
+    parts = key.split(".")
+    node = data
+    for p in parts[:-1]:
+        if not isinstance(node, dict) or p not in node:
+            raise ConfigError(f"unknown decision key: {key!r}")
+        node = node[p]
+    if not isinstance(node, dict) or parts[-1] not in node:
+        raise ConfigError(f"unknown decision key: {key!r}")
+    node[parts[-1]] = value
+    try:
+        record = DecisionRecord.model_validate(data)
+    except ValidationError as exc:
+        raise ConfigError(f"invalid decision {key}={value!r}:\n{exc}") from exc
+    updated = _write_decisions_block(path.read_text(), record.model_dump())
+    try:  # never write a config we can't read back
+        ChurnConfig.model_validate(yaml.safe_load(updated))
+    except (ValidationError, yaml.YAMLError) as exc:
+        raise ConfigError(f"Refusing to write an invalid config to {path}:\n{exc}") from exc
+    path.write_text(updated)
+    return record
+
+
 CONFIG_TEMPLATE = """\
 # mlfactory config — declares your data source and column mapping.
 # Nothing is hardcoded; edit this to point mlfactory at your data.
@@ -193,4 +310,9 @@ schema:
   features: auto               # "auto" = all other columns, or a list: [tenure_months, product_usage_hours_30d]
   # exclude_columns: []        # never-features (leakage / A/B oracle cols, e.g. on a
   #   `generate --treatment` panel: [treated, true_uplift, churn_if_control, churn_if_treated])
+
+# DS decisions (primary metric / operating threshold / policy economics / drift bar) live in a
+# tool-managed `decisions:` block — set them with `mlfactory record-decision --key <k> --value <v>`
+# (see them with `mlfactory decisions`). Omit it to use the defaults, which reproduce the
+# pipeline's built-in behavior.
 """

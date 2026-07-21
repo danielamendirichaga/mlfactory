@@ -5,8 +5,9 @@ compare -> evaluate -> simulate-policy -> report -> monitor.
 v2 (uplift/causal): generate --treatment -> train-uplift -> (uplift-eval, uplift policy).
 Copilot: advise (pre-flight recommendations) and run (interactive, checkpointed pipeline).
 Factory: engineer-features, leakage-scan, validate-artifact, export-schemas, gen-model-card
-(most stage commands take --json). Decisions: exclude-columns records a confirmed leakage-drop
-into the config so split/train honor it. The agent layer lives in .claude/ (see .claude/README.md).
+(most stage commands take --json). Decisions: record-decision / decisions read+write the config's
+decision record (metric/threshold/economics/…); exclude-columns records a confirmed leakage-drop so
+split/train honor it. The agent layer lives in .claude/ (see .claude/README.md).
 """
 
 from __future__ import annotations
@@ -106,6 +107,64 @@ def exclude_columns_cmd(
         return
     typer.echo(f"exclude_columns → {new or '[]'}  (written to {config})")
     typer.echo("  split/train read this — re-run them for the change to take effect.")
+
+
+@app.command("record-decision")
+def record_decision_cmd(
+    key: str = typer.Option(
+        ...,
+        "--key",
+        help="Dotted decision key, e.g. evaluation.threshold or modeling.primary_metric.",
+    ),
+    value: str = typer.Option(..., "--value", help="Value to set (coerced to the field's type)."),
+    config: str = typer.Option("churn.yaml", "--config", help="Path to the churn.yaml config."),
+    json_out: bool = typer.Option(False, "--json", help="Emit a machine-readable JSON summary."),
+) -> None:
+    """Record a DS decision into the config's `decisions:` block — gates persist here, stages read here.
+
+    Defaults reproduce the pipeline's built-in behavior, so a decision only changes anything once it
+    is recorded. See the current record with `mlfactory decisions`.
+    """
+    from mlfactory.config import ConfigError, set_decision
+
+    try:
+        record = set_decision(config, key, value)
+    except ConfigError as exc:
+        typer.echo(str(exc))
+        raise typer.Exit(code=1) from exc
+
+    if json_out:
+        import json
+
+        typer.echo(
+            json.dumps({"command": "record-decision", "key": key, "decisions": record.model_dump()})
+        )
+        return
+    typer.echo(f"decision recorded: {key} = {value}  (written to {config})")
+
+
+@app.command()
+def decisions(
+    config: str = typer.Option("churn.yaml", "--config", help="Path to the churn.yaml config."),
+    json_out: bool = typer.Option(False, "--json", help="Emit the decision record as JSON."),
+) -> None:
+    """Show the effective decision record (defaults + any recorded overrides) the stages will read."""
+    import yaml
+
+    from mlfactory.config import ConfigError, load_config
+
+    try:
+        record = load_config(config).decisions
+    except ConfigError as exc:
+        typer.echo(str(exc))
+        raise typer.Exit(code=1) from exc
+
+    if json_out:
+        import json
+
+        typer.echo(json.dumps(record.model_dump()))
+        return
+    typer.echo(yaml.safe_dump({"decisions": record.model_dump()}, sort_keys=False).rstrip())
 
 
 @app.command()

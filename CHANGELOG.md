@@ -2,6 +2,19 @@
 
 Append-only log of what changed and when. Newest first.
 
+## 2026-07-21 — #19 (S0) Decision-record foundation — gates write it, stages read it
+Epic #17, slice 0 — the spine the rest of the epic builds on.
+- Added a typed `DecisionRecord` on `ChurnConfig` (`decisions:` block): `modeling` (primary_metric /
+  imbalance / calibrate / tune / stability bars), `evaluation` (threshold / ship bar / segments),
+  `policy` (save_rate / offer_cost / budget / targeting), `monitoring` (drift bar), and `caveats`.
+  **Every default equals the value the pipeline hardcodes today** — a locked-in test asserts this
+  against the real `compare`/`evaluate`/`recommend_ship`/`monitor` sources, so later slices swap a
+  hardcoded default for `config.decisions.*` without changing behavior until a gate overrides it.
+- Added `set_decision` (dotted-key writer; pydantic-coerced, comment-preserving, validated before and
+  after) + `_write_decisions_block`, and the `record-decision` (write) / `decisions` (read) CLI.
+- Backward-compatible: a config without a `decisions:` block gets the defaults.
+- +9 tests (233 total green); ruff + mypy clean. (Closes #19)
+
 ## 2026-07-21 — #20 (S1) Leak-drop propagation — the confirmed drop reaches the pipeline
 Epic #17 (surface + propagate DS decisions), slice 1. Closes a gap found by *using* the tool: the EDA
 leakage-drop was recorded in the `eda-exploration` artifact but never written to `churn.yaml`, so `train`
