@@ -29,11 +29,12 @@ from mlfactory.compute import metrics as m
 from mlfactory.artifacts import ArtifactBase, content_hash
 from mlfactory.config import ChurnConfig
 
-MODELS = ("logistic", "tree", "rf", "xgboost")
+MODELS = ("logistic", "tree", "rf", "xgboost", "hist_gbm")
 _HP_KEYS = {
     "logistic": ["C", "solver", "l1_ratio"],
     "rf": ["n_estimators", "min_samples_leaf"],
     "xgboost": ["n_estimators", "learning_rate", "max_depth", "subsample", "colsample_bytree"],
+    "hist_gbm": ["max_iter", "learning_rate", "max_leaf_nodes", "l2_regularization"],
 }
 
 
@@ -79,8 +80,8 @@ def feature_columns(df: pd.DataFrame, config: ChurnConfig) -> tuple[list[str], l
 
 def _preprocessor(numeric: list[str], categorical: list[str], model: str) -> ColumnTransformer:
     """Leakage-safe preprocessing (fit on train only), tailored per model family."""
-    if model == "xgboost":
-        num = "passthrough"  # xgboost handles NaN natively (sparsity-aware splits)
+    if model in ("xgboost", "hist_gbm"):
+        num = "passthrough"  # xgboost + HistGBM handle NaN natively (no imputation needed)
         cat = SkPipeline(
             [
                 ("impute", SimpleImputer(strategy="most_frequent")),
@@ -156,6 +157,10 @@ def _estimator(model: str, seed: int, tune: bool):
             n_jobs=-1,
             verbosity=0,
         )
+    if model == "hist_gbm":
+        from sklearn.ensemble import HistGradientBoostingClassifier
+
+        return HistGradientBoostingClassifier(max_iter=200, learning_rate=0.1, random_state=seed)
     raise ModelError(f"unknown model {model!r} (use {' | '.join(MODELS)})")
 
 
@@ -308,6 +313,8 @@ def train_model(
     calibrate: bool = False,
     tune: bool = False,
     early_stopping: bool = False,
+    optuna: bool = False,
+    n_trials: int = 30,
     seed: int = 42,
 ) -> tuple[Any, ModelCard]:
     """Fit ``model`` on ``train_df`` and return (fitted estimator, ModelCard)."""
@@ -318,13 +325,23 @@ def train_model(
             raise ModelError("--early-stopping is only supported for the xgboost model")
         if tune or smote or calibrate:
             raise ModelError("--early-stopping cannot be combined with --tune/--smote/--calibrate")
+    if optuna and (tune or early_stopping or smote or calibrate):
+        raise ModelError(
+            "--optuna cannot be combined with --tune/--early-stopping/--smote/--calibrate"
+        )
     numeric, categorical = feature_columns(train_df, config)
     cols = config.columns
     X = train_df[numeric + categorical]
     y = (train_df[cols.target_col] == cols.positive_value).astype(int).to_numpy()
     pre = _preprocessor(numeric, categorical, model)
 
-    if model == "tree":
+    if optuna:
+        from mlfactory.compute.hp_search import optuna_search
+
+        estimator, hyperparams, _ = optuna_search(
+            train_df, config, model, n_trials=n_trials, seed=seed
+        )
+    elif model == "tree":
         if smote or calibrate:
             raise ModelError("smote/calibrate are not supported with the pruned 'tree' model")
         estimator, hyperparams = _fit_tree(pre, X, y, seed, tune)
@@ -361,7 +378,7 @@ def train_model(
 
     card = ModelCard(
         model_family=model,
-        tuned=tune,
+        tuned=tune or optuna,
         smote=smote,
         calibrated=calibrate,
         early_stopping=early_stopping,

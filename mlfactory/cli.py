@@ -255,6 +255,10 @@ def train(
     early_stopping: bool = typer.Option(
         False, "--early-stopping", help="XGBoost early stopping (mode-aware inner-val)."
     ),
+    optuna: bool = typer.Option(
+        False, "--optuna", help="Optuna TPE hyperparameter search (seeded)."
+    ),
+    trials: int = typer.Option(30, "--trials", help="Optuna trials (used with --optuna)."),
     seed: int = typer.Option(42, "--seed", help="RNG seed."),
     json_out: bool = typer.Option(False, "--json", help="Emit a machine-readable JSON summary."),
 ) -> None:
@@ -291,6 +295,8 @@ def train(
             calibrate=calibrate,
             tune=tune,
             early_stopping=early_stopping,
+            optuna=optuna,
+            n_trials=trials,
             seed=seed,
         )
     except ModelError as exc:
@@ -308,6 +314,7 @@ def train(
             (" +calibrated", calibrate),
             (" +tuned", tune),
             (" +early-stop", early_stopping),
+            (" +optuna", optuna),
         )
         if on
     )

@@ -2,6 +2,14 @@
 
 Append-only log of what changed and when. Newest first.
 
+## 2026-07-21 — #4 Optuna hp-search + hist_gbm engine (compute depth)
+- Added `compute/hp_search.py::optuna_search` — seeded Optuna TPE over a per-family space
+  (logistic / rf / xgboost / hist_gbm), CV-AUC scored, winner refit; deterministic (same seed → same
+  winner). Wired into `train --optuna --trials N` (+ a `train_model(optuna=...)` path with
+  mutual-exclusion guards).
+- Added the `hist_gbm` (HistGradientBoosting) engine to the model menu (NaN-native, no imputation).
+- Added the `optuna` dependency. +7 tests (216 total green); ruff + mypy clean. (Closes #4)
+
 ## 2026-07-21 — #12 Human-in-the-loop gates (AI proposes, human decides) — agent layer complete
 - Added `advise --json` (structured deterministic recommendations a gate parses), the
   `.claude/commands/mlfactory-gates.md` playbook (the four gates — target / leakage exclusion / model

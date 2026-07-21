@@ -10,8 +10,8 @@ number is reproducible, every artifact is lineage-verified, and the LLM never si
 for a computation. Full blueprint: `ml-factory-architecture.md`. Build plan: `REUSE-MAP.md`.
 
 **Status:** MVP deterministic core, bootstrapped from churnpilot (`../AI&DS_lab`) and generalized.
-Currently **209 tests green, ruff + mypy clean**. The **agent layer is complete** (#10 foundation ·
-#11 EDA judgment · #12 human-in-the-loop gates, under `.claude/`). See `STATUS.md`.
+Currently **216 tests green, ruff + mypy clean**. **mlfactory is complete** — the deterministic core,
+the full agent layer (#10–#12, `.claude/`), and Optuna hp-search + `hist_gbm` (#4). See `STATUS.md`.
 
 ## Architecture & conventions
 - **Layering — core ← domain ← app** (dependency direction, enforced by discipline):
@@ -31,7 +31,7 @@ Currently **209 tests green, ruff + mypy clean**. The **agent layer is complete*
 - `mlfactory/domains/saas/` — `generate` · `policy` · `uplift` · `qini` · `monitor` (B2B SaaS reference domain)
 - `mlfactory/` — `config.py` · `artifacts.py` (typed lineage contracts) · `source.py` · `validate.py`
   · `recommend.py` · `charts.py` · `report.py` · `cli.py`
-- `tests/` — 209 green tests (one file per module + capstones + a CLI pipeline E2E)
+- `tests/` — 216 green tests (one file per module + capstones + a CLI pipeline E2E)
 - `.claude/` — the agent layer (L4/L5): `commands/` orchestrator playbooks + `agents/` subagents (see `.claude/README.md`)
 - `docs/` — `PRD.md` + `ADRs.md` + `example-feature-spec.yaml`
 - `REUSE-MAP.md` — churnpilot→factory reuse plan · `ml-factory-architecture.md` — the blueprint
