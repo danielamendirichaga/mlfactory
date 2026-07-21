@@ -1,12 +1,10 @@
 # Status — mlfactory (updated 2026-07-20)
 
 ## Where we are
-The MVP deterministic core is complete (#1–#3), and **the agent layer is now complete** (epic #5):
-#10 foundation orchestrator → #11 EDA judgment → **#12 human-in-the-loop gates** (AI proposes, human
-decides — `advise --json` + the gates playbook + `mlfactory-advisor`). Green and on `main`. The only open
-item is #4 (Optuna hp-search) — a deferred, optional compute enhancement.
+**mlfactory is complete.** The deterministic core (#1–#3), the full agent layer (#10–#12, epic #5), and
+the Optuna hp-search + `hist_gbm` compute depth (#4) are all shipped. **Every roadmap issue is closed.**
 
-**Health:** 209 tests green · ruff + mypy clean · CLI + live pipeline verified · Python 3.11 / uv.
+**Health:** 216 tests green · ruff + mypy clean · CLI + live pipeline verified · Python 3.11 / uv.
 
 ## Done
 - **Bootstrap** — lifted churnpilot's tested deterministic core into `mlfactory` (renamed), fresh repo. (`4ca941c`)
@@ -35,18 +33,20 @@ item is #4 (Optuna hp-search) — a deferred, optional compute enhancement.
 - **#12 — Human-in-the-loop gates** — `advise --json` + the `/mlfactory-gates` playbook + the
   `mlfactory-advisor` subagent (propose the deterministic recommendation, wait for the human, honor
   overrides). +1 test (209 total). **Agent layer (epic #5) complete.**
+- **#4 — Optuna hp-search + hist_gbm** — seeded TPE search (`compute/hp_search.py`, `train --optuna`) +
+  the HistGradientBoosting engine in the model menu. +7 tests (216 total).
 
 ## In progress
 - None. Workflow just established; next slice not yet started.
 
-## Next up (active backlog — GitHub issues)
-- **Agent layer (epic #5) — ✅ complete** (#10 foundation · #11 EDA judgment · #12 human-in-the-loop gates).
-- **#4 — Optuna hp-search + GBM engines** (compute depth) — the only open item; a deferred, optional
-  enhancement, pick up anytime.
+## Next up
+**All roadmap issues are closed** — #1–#3 (core spine + feature stage + CLI/docs) · #7 (reorg/decouple) ·
+#4 (Optuna + hist_gbm) · #10–#12 (agent layer, epic #5). mlfactory is a complete, generic, LLM-orchestrated
+ML factory: deterministic tested CLI + heavy lineage artifacts + the agent layer, with a B2B SaaS
+reference domain.
 
-The factory is **functionally complete**: the deterministic core, the heavy contract spine, the
-leakage-safe feature stage, the CLI tool surface, and the full agent layer (orchestrators + judgment
-subagents + human-in-the-loop gates).
+Possible future directions (not planned): lightgbm/catboost engines · the split-before-EDA leakage path ·
+additional reference domains · flipping the repo public.
 2. #4 — Optuna hp-search + GBM engines (compute depth) — *deferred; optional enhancement, pick up anytime.*
 
 **Dropped:** #6 (bundle distribution) — out of scope (fleet distribution; mlfactory ships as a `uv build`
