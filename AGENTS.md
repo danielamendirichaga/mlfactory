@@ -10,8 +10,8 @@ number is reproducible, every artifact is lineage-verified, and the LLM never si
 for a computation. Full blueprint: `ml-factory-architecture.md`. Build plan: `REUSE-MAP.md`.
 
 **Status:** MVP deterministic core, bootstrapped from churnpilot (`../AI&DS_lab`) and generalized.
-Currently **204 tests green, ruff + mypy clean**. The agent-layer **foundation** is built (#10 —
-`.claude/`); the EDA judgment subagents and human-in-the-loop gates are #11/#12. See `STATUS.md`.
+Currently **208 tests green, ruff + mypy clean**. The agent layer is two slices in (#10 foundation,
+#11 EDA judgment subagents); the human-in-the-loop gates are #12. See `STATUS.md`.
 
 ## Architecture & conventions
 - **Layering — core ← domain ← app** (dependency direction, enforced by discipline):
@@ -31,7 +31,7 @@ Currently **204 tests green, ruff + mypy clean**. The agent-layer **foundation**
 - `mlfactory/domains/saas/` — `generate` · `policy` · `uplift` · `qini` · `monitor` (B2B SaaS reference domain)
 - `mlfactory/` — `config.py` · `artifacts.py` (typed lineage contracts) · `source.py` · `validate.py`
   · `recommend.py` · `charts.py` · `report.py` · `cli.py`
-- `tests/` — 204 green tests (one file per module + capstones + a CLI pipeline E2E)
+- `tests/` — 208 green tests (one file per module + capstones + a CLI pipeline E2E)
 - `.claude/` — the agent layer (L4/L5): `commands/` orchestrator playbooks + `agents/` subagents (see `.claude/README.md`)
 - `docs/` — `PRD.md` + `ADRs.md` + `example-feature-spec.yaml`
 - `REUSE-MAP.md` — churnpilot→factory reuse plan · `ml-factory-architecture.md` — the blueprint
@@ -42,7 +42,7 @@ Currently **204 tests green, ruff + mypy clean**. The agent-layer **foundation**
 - lint/fmt:`.venv/bin/ruff check .`  /  `.venv/bin/ruff format .`
 - types:   `.venv/bin/mypy mlfactory`
 - run:     `.venv/bin/mlfactory <cmd>`  (init | generate | validate | profile | metrics | split | train | compare | evaluate | simulate-policy | report | monitor | advise | run | version)
-- factory: `engineer-features` (Stage 4) · `validate-artifact --walk-lineage --probe-output` · `export-schemas [--check]` · `gen-model-card`. Stage commands take `--json` for machine output (the tool surface subagents shell out to).
+- factory: `engineer-features` (Stage 4) · `leakage-scan` (EDA) · `validate-artifact --walk-lineage --probe-output` · `export-schemas [--check]` · `gen-model-card`. Stage commands take `--json` (the tool surface subagents shell out to).
 - v2 uplift: `generate --treatment` | `train-uplift` | `uplift-eval` | `policy-contrast`
 - build:   `uv build`  → an installable wheel (this is the "release" — there is NO web deploy)
 

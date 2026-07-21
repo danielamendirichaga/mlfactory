@@ -108,3 +108,38 @@ def high_corr_features(records: list[dict], threshold: float = 0.5) -> list[tupl
         if r.get("target_corr") is not None and abs(r["target_corr"]) >= threshold
     ]
     return sorted(out, key=lambda x: -abs(x[1]))
+
+
+def scan_leakage(records: list[dict], config: ChurnConfig) -> list[dict]:
+    """Tier the target correlations into structured leakage risks — the deterministic substrate the
+    EDA leakage-scanner subagent wraps, then reasons over for the posterior/derived cases it can't see.
+
+    Tiers (blueprint §8.3): ``|corr| > 0.99`` → perfect_predictor (drop); ``0.9 ≤ |corr| < 0.99`` →
+    near_perfect (inspect — verify it is observable at prediction time). Genuine drivers stay below.
+    """
+    target = config.columns.target_col
+    risks: list[dict] = []
+    for r in records:
+        corr = r.get("target_corr")
+        if corr is None or r["column"] == target:
+            continue
+        a = abs(corr)
+        if a > 0.99:
+            kind, rec = "perfect_predictor", "drop"
+            reason = f"|corr|={a:.3f} > 0.99 — computed from the target, contains it, or encodes posterior state"
+        elif a >= 0.9:
+            kind, rec = "near_perfect", "inspect"
+            reason = f"|corr|={a:.3f} in [0.9, 0.99) — verify it is observable at prediction time"
+        else:
+            continue
+        risks.append(
+            {
+                "column": r["column"],
+                "target": target,
+                "strength": round(float(corr), 4),
+                "kind": kind,
+                "recommendation": rec,
+                "reason": reason,
+            }
+        )
+    return sorted(risks, key=lambda x: -abs(x["strength"]))

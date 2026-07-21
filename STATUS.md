@@ -1,11 +1,12 @@
 # Status — mlfactory (updated 2026-07-20)
 
 ## Where we are
-The MVP deterministic core is complete (#1–#3), and the **agent layer has started**: **#10** (the
-foundation — the `/mlfactory-run` orchestrator + CLI-wrapper subagents + the closing `validate-artifact`
-gate, under `.claude/`) is done. Green and on `main`. Next: **#11 — the EDA stage + judgment subagents**.
+The MVP deterministic core is complete (#1–#3), and the **agent layer is two slices in**: #10
+(foundation orchestrator) and **#11** (the EDA judgment crown jewels — the `leakage-scan` substrate +
+column-profiler / leakage-scanner / model-recommender subagents + the `eda-exploration` artifact). Green
+and on `main`. Next: **#12 — the human-in-the-loop gates** (the last agent-layer slice).
 
-**Health:** 204 tests green · ruff + mypy clean · CLI + live pipeline verified · Python 3.11 / uv.
+**Health:** 208 tests green · ruff + mypy clean · CLI + live pipeline verified · Python 3.11 / uv.
 
 ## Done
 - **Bootstrap** — lifted churnpilot's tested deterministic core into `mlfactory` (renamed), fresh repo. (`4ca941c`)
@@ -28,15 +29,18 @@ gate, under `.claude/`) is done. Green and on `main`. Next: **#11 — the EDA st
   +5 tests (203 total). **MVP deterministic core complete.**
 - **#10 — Agent-layer foundation** — `.claude/` orchestrator playbook (`/mlfactory-run`) + no-retry
   CLI-wrapper subagents + the closing `validate-artifact` gate; a CLI pipeline E2E test. +1 test (204 total).
+- **#11 — EDA judgment stage** — deterministic `leakage-scan` (tiered risks) + the `eda-exploration`
+  artifact + the `/mlfactory-eda` playbook and judgment subagents (column-profiler, leakage-scanner,
+  model-recommender). +4 tests (208 total).
 
 ## In progress
 - None. Workflow just established; next slice not yet started.
 
 ## Next up (active backlog — GitHub issues)
-1. **The agent layer (epic #5)** — three behavioral (prompt/agent-engineering) slices; #10 done, build #11 → #12:
+1. **The agent layer (epic #5)** — three behavioral slices; #10 + #11 done, build #12:
    - ✅ **#10** — foundation + deterministic pipeline orchestrator (done)
-   - **#11** — EDA stage playbook + judgment subagents (column-profiler, leakage-scanner, model-recommender) — *the next slice.*
-   - **#12** — human-in-the-loop gates (AI proposes, human decides)
+   - ✅ **#11** — EDA stage playbook + judgment subagents (done)
+   - **#12** — human-in-the-loop gates (AI proposes, human decides) — *the next slice; the last agent-layer slice.*
 2. #4 — Optuna hp-search + GBM engines (compute depth) — *deferred; optional enhancement, pick up anytime.*
 
 **Dropped:** #6 (bundle distribution) — out of scope (fleet distribution; mlfactory ships as a `uv build`
