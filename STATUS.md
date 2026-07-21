@@ -4,9 +4,10 @@
 **mlfactory's core is complete and shipped** — the deterministic core (#1–#3), the full agent layer
 (#10–#12, epic #5), and the Optuna hp-search + `hist_gbm` depth (#4). A new epic (**#17**) now hardens
 the human-in-the-loop coverage: *surface + propagate the DS decisions* that the back half of the
-pipeline was resolving via silent defaults. **S1 (leak-drop propagation) shipped**; S0 · S2–S6 queued.
+pipeline was resolving via silent defaults. **S1 (leak-drop) + S0 (decision-record foundation) shipped**;
+S2–S6 queued.
 
-**Health:** 224 tests green · ruff + mypy clean · CLI + live pipeline verified · Python 3.11 / uv.
+**Health:** 233 tests green · ruff + mypy clean · CLI + live pipeline verified · Python 3.11 / uv.
 
 ## Done
 - **Bootstrap** — lifted churnpilot's tested deterministic core into `mlfactory` (renamed), fresh repo. (`4ca941c`)
@@ -41,11 +42,15 @@ pipeline was resolving via silent defaults. **S1 (leak-drop propagation) shipped
   confirmed leakage-drop into `config.exclude_columns` (comment-preserving), so `split`/`train` actually
   honor it; the leakage gate in `/mlfactory-eda` · `/mlfactory-gates` · `/mlfactory-run` now persists the
   drop. Closes the gap where the decision lived only in the artifact. +8 tests (224 total). (Epic #17)
+- **#19 (S0) — decision-record foundation** — a typed `DecisionRecord` on `ChurnConfig`
+  (modeling/evaluation/policy/monitoring + caveats) whose defaults reproduce every pre-#17 hardcoded
+  value; `set_decision` + the `record-decision`/`decisions` CLI write/read it. Zero behavior change —
+  the spine S3/S4/S6 read from. +9 tests (233 total). (Epic #17)
 
 ## In progress
-- **Epic #17 — surface + propagate DS decisions.** S1 (#20) done. Remaining: **S0** (#19, decision-record
-  foundation) · **S2** (#21, feature-engineering: wire feature-spec→train + construction transforms) ·
-  **S3** (#22, train/select) · **S4** (#23, evaluate) · **S5** (#24, model card) · **S6** (#25, downstream).
+- **Epic #17 — surface + propagate DS decisions.** S1 (#20) + S0 (#19) done. Remaining: **S2** (#21,
+  feature-engineering: wire feature-spec→train + construction transforms) · **S3** (#22, train/select) ·
+  **S4** (#23, evaluate) · **S5** (#24, model card) · **S6** (#25, downstream).
 
 ## Next up
 **The original roadmap (#1–#12) is closed** — #1–#3 (core spine + feature stage + CLI/docs) · #7 (reorg/decouple) ·
