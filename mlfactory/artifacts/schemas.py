@@ -97,11 +97,59 @@ class FeatureSpecArtifact(ArtifactBase):
     target_compatibility: list[dict] = []
 
 
+class LeakageRisk(BaseModel):
+    """One flagged leakage risk from the EDA leakage scan."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    column: str
+    target: str
+    strength: float
+    kind: Literal[
+        "perfect_predictor",
+        "near_perfect",
+        "posterior_info",
+        "derived_from_target",
+        "id_correlated",
+    ]
+    recommendation: Literal["drop", "inspect", "safe-with-caveat"]
+    reason: str
+
+
+class FamilyRec(BaseModel):
+    """One recommended model family, ranked, with the EDA reasoning that produced it."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    family: str
+    rank: int
+    reasoning: str
+
+
+class EdaExplorationArtifact(ArtifactBase):
+    """Stage-3 output — the modeling design the downstream stages read (blueprint §8.6).
+
+    In modeling mode it carries the target(s), the feature candidates, the tiered leakage risks, the
+    recommended model families (with reasoning), a baseline spec, and the CV/split strategy.
+    """
+
+    artifact: Literal["eda-exploration"] = "eda-exploration"
+    stage: int = 3
+    mode: Literal["descriptive", "modeling"] = "modeling"
+    targets: list[str] = []
+    feature_candidates: list[str] = []
+    leakage_risks: list[LeakageRisk] = []
+    recommended_model_families: list[FamilyRec] = []
+    baseline_spec: dict = {}
+    cv_strategy: dict = {}
+
+
 # Registry: artifact-type string -> its pydantic model. The lineage walker validates each node
 # against this; export_schemas emits one JSON-Schema per entry. Later stages append their models.
 ARTIFACT_MODELS: dict[str, type[ArtifactBase]] = {
     "saved-dataset": SavedDatasetArtifact,
     "feature-spec": FeatureSpecArtifact,
+    "eda-exploration": EdaExplorationArtifact,
 }
 
 

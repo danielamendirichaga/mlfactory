@@ -1106,5 +1106,35 @@ def gen_model_card_cmd(
     typer.echo(f"Wrote model card → {output}  ({len(sections)} sections: {', '.join(sections)})")
 
 
+@app.command("leakage-scan")
+def leakage_scan_cmd(
+    config: Path = typer.Option(
+        Path("churn.yaml"), "--config", help="Path to the churn.yaml config."
+    ),
+    json_out: bool = typer.Option(False, "--json", help="Emit machine-readable JSON."),
+) -> None:
+    """Tier the target correlations into structured leakage risks (the deterministic EDA substrate)."""
+    from mlfactory.compute.profile import profile_frame, scan_leakage
+
+    cfg, df = _load(config)
+    risks = scan_leakage(profile_frame(df, cfg), cfg)
+    if json_out:
+        import json
+
+        typer.echo(json.dumps({"command": "leakage-scan", "leakage_risks": risks}))
+        return
+    if not risks:
+        typer.echo("✔ no features cross the leakage tiers (|corr| ≥ 0.9).")
+        return
+    typer.echo(
+        f"⚠ {len(risks)} leakage risk(s) — the EDA leakage-scanner should judge the posterior/derived cases:\n"
+    )
+    for r in risks:
+        typer.echo(
+            f"  [{r['kind']}] {r['column']}  strength {r['strength']:+.3f} → {r['recommendation']}"
+        )
+        typer.echo(f"      {r['reason']}")
+
+
 if __name__ == "__main__":  # pragma: no cover
     app()

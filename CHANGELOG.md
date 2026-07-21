@@ -2,6 +2,16 @@
 
 Append-only log of what changed and when. Newest first.
 
+## 2026-07-21 — #11 EDA judgment stage (leakage-scan + eda-exploration + judgment subagents)
+- Deterministic substrate: `compute/profile.py::scan_leakage` tiers target correlations into structured
+  leakage_risks (|corr|>0.99 perfect_predictor/drop; 0.9–0.99 near_perfect/inspect), plus a `leakage-scan`
+  CLI (`--json`). On the SaaS panel it flags the planted `cancel_page_visits_30d` trap at near_perfect (+0.92).
+- New `eda-exploration` stage artifact (+ `LeakageRisk`, `FamilyRec`) registered in ARTIFACT_MODELS.
+- Agent layer: `.claude/commands/mlfactory-eda.md` (EDA orchestrator) + `agents/` column-profiler,
+  leakage-scanner (wraps leakage-scan; escalates near_perfect → drop for posterior/derived cases),
+  model-recommender (family ranking + baseline from the profile).
+- +4 tests (208 total green); ruff + mypy clean. (Closes #11)
+
 ## 2026-07-21 — #10 Agent-layer foundation (pipeline orchestrator + CLI-wrapper subagents)
 - Started the LLM orchestration layer under `.claude/`: `commands/mlfactory-run.md` (the `/mlfactory-run`
   orchestrator — phase flow, deterministic-tool boundary, spawn-a-subagent-per-stage, closing
