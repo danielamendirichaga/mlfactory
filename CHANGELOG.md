@@ -2,6 +2,18 @@
 
 Append-only log of what changed and when. Newest first.
 
+## 2026-07-21 — #22 (S3) Train & select read the decision record
+Epic #17, slice 3 (closes #22). The model-selection and training knobs now come from the record instead
+of being hardcoded or hidden.
+- `compare_models` ranks by `config.decisions.modeling.primary_metric` (each row carries `primary` +
+  `primary_metric`) with the record's stability bars (`max_auc_drop`/`max_score_psi`); `recommend_model`
+  selects the most-stable model on that metric (falls back to AUC for legacy rows).
+- The `train` CLI reads `modeling.{imbalance,calibrate,tune}` as the regime; explicit CLI flags
+  force-on / override. `--engineered` still ignores the record's tune (unsupported there).
+- The Model gate in `/mlfactory-gates` (+ `/mlfactory-run`) persists the metric / imbalance / calibration.
+- Verified live: recorded `primary_metric=pr_auc` reorders `compare`; recorded `calibrate=true` produces
+  a calibrated model with no CLI flag. +6 tests (258 total green); ruff + mypy clean. **Closes #22.**
+
 ## 2026-07-21 — #21 (S2b) Construction transforms + the FE gate — S2 complete
 Epic #17, slice 2b (closes #21). Now a recipe can *build* signal, and the feature-engineering decision
 is a real gate instead of an improvised step.

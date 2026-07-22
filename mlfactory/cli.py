@@ -395,6 +395,14 @@ def train(
         raise typer.Exit(code=1) from exc
     df = pd.read_parquet(train)
 
+    # The decision record supplies the training regime; explicit CLI flags force-on / override it (S3).
+    dec = cfg.decisions.modeling
+    smote = smote or dec.imbalance == "smote"
+    calibrate = calibrate or dec.calibrate
+    if not engineered and not (tune or optuna):
+        tune = dec.tune == "grid"
+        optuna = dec.tune == "optuna"
+
     # Safety: warn if a feature about to be used looks like leakage (extreme target corr).
     numeric, categorical = feature_columns(df, cfg)
     used = set(numeric) | set(categorical)

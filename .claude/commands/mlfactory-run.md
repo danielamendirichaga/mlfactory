@@ -43,7 +43,8 @@ the user to run setup (see `AGENTS.md`).
    --model-out data/model.pkl --json`. **recipe/hybrid:** `train --train data/features/train.parquet
    --config churn.yaml --model logistic --engineered --model-out data/model.pkl --json`. *(Precondition:
    any leakage drop confirmed in `/mlfactory-eda` must already be in `config.exclude_columns` via
-   `mlfactory exclude-columns`, or training silently includes the leak.)*
+   `mlfactory exclude-columns`, or training silently includes the leak. `train` also reads
+   `config.decisions.modeling` for the imbalance / calibration / tune regime — set it at the Model gate.)*
 5. **Evaluate** — score the matching test split (`data/splits/test.parquet` for skip,
    `data/features/test.parquet` for recipe/hybrid): `evaluate --model data/model.pkl --test <…>
    --config churn.yaml --report-out data/eval-report.json`.
