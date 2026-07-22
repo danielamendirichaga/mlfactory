@@ -4,10 +4,11 @@
 **mlfactory's core is complete and shipped** — the deterministic core (#1–#3), the full agent layer
 (#10–#12, epic #5), and the Optuna hp-search + `hist_gbm` depth (#4). A new epic (**#17**) now hardens
 the human-in-the-loop coverage: *surface + propagate the DS decisions* that the back half of the
-pipeline was resolving via silent defaults. **S1 (leak-drop), S0 (decision record), S2 (feature
-engineering), S3 (train & select), S4 (evaluate & ship), and S5 (model card) shipped**; S6 queued.
+pipeline was resolving via silent defaults. **Epic #17 is complete** — S0–S6 all shipped: every
+back-half stage now surfaces its DS decisions at a gate and reads them from a typed `config.decisions`
+record instead of a hardcoded default (defaults reproduce the pre-#17 behavior).
 
-**Health:** 270 tests green · ruff + mypy clean · CLI + live pipeline verified · Python 3.11 / uv.
+**Health:** 273 tests green · ruff + mypy clean · CLI + live pipeline verified · Python 3.11 / uv.
 
 ## Done
 - **Bootstrap** — lifted churnpilot's tested deterministic core into `mlfactory` (renamed), fresh repo. (`4ca941c`)
@@ -67,10 +68,13 @@ engineering), S3 (train & select), S4 (evaluate & ship), and S5 (model card) shi
   ride `train` into the card; `gen-model-card --config` renders DS-authored sections
   (`config.decisions.card`: intended use / out-of-scope / known failure modes / sign-off). Defaults add
   nothing. +6 tests (270 total). **Closes #24.** (Epic #17)
+- **#25 (S6) — downstream reads the record** — `simulate-policy` / `policy-contrast` take
+  `save_rate`/`offer_cost`/`budget` from `config.decisions.policy` and `monitor` takes the drift bar
+  from `config.decisions.monitoring` (were silent `0.3`/`$5`/`none`/`0.25`); CLI flags override.
+  +3 tests (273 total). **Closes #25 — epic #17 complete.** (Epic #17)
 
 ## In progress
-- **Epic #17 — surface + propagate DS decisions.** S1 + S0 + S2 + S3 + S4 + S5 done (#19–#24). Remaining:
-  **S6** (#25, downstream — policy economics + targeting + drift bar from the record).
+- None — **epic #17 (surface + propagate DS decisions) is complete** (#19–#25 all closed).
 
 ## Next up
 **The original roadmap (#1–#12) is closed** — #1–#3 (core spine + feature stage + CLI/docs) · #7 (reorg/decouple) ·

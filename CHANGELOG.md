@@ -2,6 +2,19 @@
 
 Append-only log of what changed and when. Newest first.
 
+## 2026-07-21 — #25 (S6) Downstream reads the decision record — epic #17 complete
+Epic #17, slice 6 (closes #25) — the final slice. The domain layer's economics now come from the record.
+- `simulate-policy` and `policy-contrast` take `save_rate` / `offer_cost` / `budget` from
+  `config.decisions.policy` (were silent `0.3` / `$5` / `none`); the `run` copilot seeds its prompts from
+  the record too. `monitor` takes the drift bar from `config.decisions.monitoring.drift_threshold` (was a
+  hardcoded `0.25`). CLI flags still override.
+- Verified live: recorded `policy.offer_cost=9` shows in the policy report; recorded
+  `monitoring.drift_threshold=0.4` shows in the drift report. +3 tests (273 total green); ruff + mypy clean.
+
+**Epic #17 (surface + propagate DS decisions) is complete** — every back-half stage (features, train,
+select, evaluate, ship, model card, policy, monitor) now surfaces its decisions at a gate and reads them
+from the typed `config.decisions` record, defaults reproducing the pre-#17 behavior. **Closes #25.**
+
 ## 2026-07-21 — #24 (S5) Model card is authored, not just generated
 Epic #17, slice 5 (closes #24). The card now carries the DS's judgment, not only the generated metrics.
 - `train` writes `config.decisions.caveats` onto the `ModelCard`, so accumulated gate/EDA caveats

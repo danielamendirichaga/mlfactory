@@ -44,6 +44,9 @@ metric with the record's stability bars, and `train` honors the imbalance / cali
 For the **Ship** gate, persist `mlfactory record-decision --key evaluation.threshold --value <p>` (plus
 `evaluation.min_auc` / `evaluation.max_ece` / `evaluation.segment_cols`): `evaluate` reads the operating
 threshold + segments from the record, and `recommend_ship` judges against the recorded criteria.
+Downstream, `simulate-policy` / `policy-contrast` read the economics from `config.decisions.policy`
+(`save_rate` / `offer_cost` / `budget` / `targeting`) and `monitor` reads the drift bar from
+`config.decisions.monitoring.drift_threshold` — all CLI-flag-overridable, all set with `record-decision`.
 
 ## Why this exists
 A model that looks great in-sample and quietly collapses in production is the failure these gates

@@ -91,6 +91,9 @@ architecture rule, key file, or gotcha changed.
 - Model card: `train` propagates `config.decisions.caveats` onto the card; `gen-model-card --config`
   adds DS-authored sections (`config.decisions.card`: intended_use / out_of_scope / known_failure_modes /
   sign_off). The card is authored, not just generated. (epic #17 / S5)
+- Downstream: `simulate-policy` / `policy-contrast` read `config.decisions.policy` (save_rate / offer_cost
+  / budget / targeting); `monitor` reads `config.decisions.monitoring.drift_threshold`. CLI flags override.
+  (epic #17 / S6 — **epic complete**: every back-half stage surfaces + propagates its decisions.)
 - Generic core hardcodes no domain columns — mark never-features via `config.columns.exclude_columns`.
 - Synthetic data only; `data/` is gitignored; never commit real customer data / PII.
 - `mlfactory` = the tool name; the bundled domain is B2B SaaS account churn (NOT streaming/fintech).
