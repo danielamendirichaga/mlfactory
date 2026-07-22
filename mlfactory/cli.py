@@ -541,7 +541,9 @@ def evaluate(
     reference: Path = typer.Option(
         None, "--reference", help="Optional reference parquet for score-PSI drift."
     ),
-    threshold: float = typer.Option(0.5, "--threshold", help="Cutoff for precision/recall/F1."),
+    threshold: Optional[float] = typer.Option(
+        None, "--threshold", help="P/R/F1 cutoff; default = config.decisions.evaluation.threshold."
+    ),
     report_out: Path = typer.Option(
         Path("data/eval-report.json"), "--report-out", help="Where to write the eval-report."
     ),
@@ -579,7 +581,7 @@ def evaluate(
         f"top-decile lift {mx['top_decile_lift']:.2f}x | rank-order breaks {mx['rank_order_breaks']}"
     )
     typer.echo(
-        f"  @{threshold:g}: precision {mx['precision']:.3f} | recall {mx['recall']:.3f} | "
+        f"  @{report.threshold:g}: precision {mx['precision']:.3f} | recall {mx['recall']:.3f} | "
         f"F1 {mx['f1']:.3f} | log-loss {mx['log_loss']:.4f} | ECE {mx['ece']:.4f}"
     )
     if report.score_psi is not None:
@@ -1051,7 +1053,8 @@ def run(
     ev = evaluate_model(est, test_df, cfg, reference_df=train_df)
     ev.write_json(out_dir / "eval-report.json")
     typer.echo(f"    → held-out AUC {ev.metrics['auc']:.3f} | ECE {ev.metrics['ece']:.3f}")
-    show(recommend_ship(ev.model_dump()))
+    ship_dec = cfg.decisions.evaluation
+    show(recommend_ship(ev.model_dump(), min_auc=ship_dec.min_auc, max_ece=ship_dec.max_ece))
 
     # ── Gate 5: policy ──────────────────────────────────────────────────
     show(recommend_policy(cfg))

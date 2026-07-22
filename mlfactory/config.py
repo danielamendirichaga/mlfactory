@@ -14,6 +14,7 @@ Public surface:
 
 from __future__ import annotations
 
+import json
 import re
 from pathlib import Path
 from typing import Literal
@@ -289,7 +290,12 @@ def set_decision(path: str | Path, key: str, value: str) -> DecisionRecord:
         node = node[p]
     if not isinstance(node, dict) or parts[-1] not in node:
         raise ConfigError(f"unknown decision key: {key!r}")
-    node[parts[-1]] = value
+    # JSON-parse so lists / numbers / bools work (`[a, b]`, `0.3`, `true`); bare words
+    # (`pr_auc`, `skip`) aren't valid JSON and fall through as plain strings.
+    try:
+        node[parts[-1]] = json.loads(value)
+    except (json.JSONDecodeError, ValueError):
+        node[parts[-1]] = value
     try:
         record = DecisionRecord.model_validate(data)
     except ValidationError as exc:

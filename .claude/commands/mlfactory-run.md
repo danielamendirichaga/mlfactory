@@ -47,7 +47,8 @@ the user to run setup (see `AGENTS.md`).
    `config.decisions.modeling` for the imbalance / calibration / tune regime — set it at the Model gate.)*
 5. **Evaluate** — score the matching test split (`data/splits/test.parquet` for skip,
    `data/features/test.parquet` for recipe/hybrid): `evaluate --model data/model.pkl --test <…>
-   --config churn.yaml --report-out data/eval-report.json`.
+   --config churn.yaml --report-out data/eval-report.json`. The operating threshold + segments come
+   from `config.decisions.evaluation`; the Ship gate judges against the recorded `min_auc`/`max_ece`.
 6. **Model card** — `gen-model-card --card data/model.card.json --eval data/eval-report.json
    --output data/model-card.md`.
 

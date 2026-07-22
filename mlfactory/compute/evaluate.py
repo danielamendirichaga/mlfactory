@@ -40,11 +40,20 @@ def evaluate_model(
     test_df: pd.DataFrame,
     config: ChurnConfig,
     reference_df: Optional[pd.DataFrame] = None,
-    threshold: float = 0.5,
+    threshold: Optional[float] = None,
     segment_cols: Optional[list[str]] = None,
 ) -> EvalReport:
-    """Score ``test_df`` with ``estimator`` and return a full :class:`EvalReport`."""
+    """Score ``test_df`` with ``estimator`` and return a full :class:`EvalReport`.
+
+    ``threshold`` and ``segment_cols`` default to ``config.decisions.evaluation`` (epic #17 / S4);
+    pass either explicitly to override.
+    """
     cols = config.columns
+    dec = config.decisions.evaluation
+    if threshold is None:
+        threshold = dec.threshold
+    if segment_cols is None:
+        segment_cols = dec.segment_cols
     test_df = test_df.reset_index(drop=True)
     if cols.features != "auto":
         missing = [c for c in cols.features if c not in test_df.columns]
