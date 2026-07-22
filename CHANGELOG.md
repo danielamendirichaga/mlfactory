@@ -2,6 +2,17 @@
 
 Append-only log of what changed and when. Newest first.
 
+## 2026-07-21 — #24 (S5) Model card is authored, not just generated
+Epic #17, slice 5 (closes #24). The card now carries the DS's judgment, not only the generated metrics.
+- `train` writes `config.decisions.caveats` onto the `ModelCard`, so accumulated gate/EDA caveats
+  (the leakage note, "prefer isotonic over SMOTE", …) reach the card's Limitations instead of being lost.
+- Added `CardDecisions` (`config.decisions.card`): intended_use / out_of_scope / known_failure_modes /
+  sign_off. `gen_model_card(..., authored=...)` renders Intended Use / Out of Scope (after Purpose), the
+  failure modes (in Limitations), and a Sign-off section; `gen-model-card --config` supplies them.
+- Behavior-preserving: with nothing authored, the card is unchanged.
+- Verified live: a card with Intended Use + Sign-off sections and a propagated calibration caveat.
+  +6 tests (270 total green); ruff + mypy clean. **Closes #24.**
+
 ## 2026-07-21 — #23 (S4) Evaluate & ship read the decision record
 Epic #17, slice 4 (closes #23). The operating point, the slices, and the ship bar now come from the
 record instead of a silent 0.5 / hardcoded segments / a baked-in 0.65-0.10.

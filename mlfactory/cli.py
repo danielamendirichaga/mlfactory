@@ -1239,6 +1239,11 @@ def gen_model_card_cmd(
     target: str = typer.Option(
         "churn_next_30d", "--target", help="Target column (for the narrative)."
     ),
+    config: Optional[str] = typer.Option(
+        None,
+        "--config",
+        help="Optional churn.yaml — adds DS-authored sections from decisions.card.",
+    ),
 ) -> None:
     """Render a markdown model card from the model + eval artifacts (the DS go/no-go surface)."""
     import json
@@ -1247,7 +1252,12 @@ def gen_model_card_cmd(
 
     mc = json.loads(card.read_text())
     ev = json.loads(eval_report.read_text()) if eval_report is not None else None
-    md = gen_model_card(mc, ev, target=target)
+    authored = None
+    if config is not None:
+        from mlfactory.config import load_config
+
+        authored = load_config(config).decisions.card.model_dump()
+    md = gen_model_card(mc, ev, target=target, authored=authored)
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(md)
     sections = [ln[3:] for ln in md.splitlines() if ln.startswith("## ")]

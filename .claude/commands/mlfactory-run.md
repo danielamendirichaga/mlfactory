@@ -50,7 +50,9 @@ the user to run setup (see `AGENTS.md`).
    --config churn.yaml --report-out data/eval-report.json`. The operating threshold + segments come
    from `config.decisions.evaluation`; the Ship gate judges against the recorded `min_auc`/`max_ece`.
 6. **Model card** — `gen-model-card --card data/model.card.json --eval data/eval-report.json
-   --output data/model-card.md`.
+   --config churn.yaml --output data/model-card.md`. The card is **authored, not just generated**:
+   accumulated caveats (`config.decisions.caveats`) ride in via `train`, and DS-authored sections
+   (`config.decisions.card`: intended use / out-of-scope / failure modes / sign-off) render when set.
 
 > **Feature flow (S2b, #21).** The **FE gate** picks the approach (`config.decisions.features.approach`,
 > default `skip`): **skip** trains on the raw split (the per-family preprocessor handles it); **recipe** /

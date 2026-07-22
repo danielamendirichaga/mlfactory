@@ -3,7 +3,8 @@
 Pure formatting over the typed artifacts (no compute): given a ``model-card`` artifact dict (from
 ``train``) and an optional ``eval-report`` dict (from ``evaluate``), produce an 8-section markdown
 card (Purpose · Training Data · Features · Performance · Calibration · Slices · Limitations ·
-Lineage). This is the human-reviewable deliverable a data scientist signs off on before shipping.
+Lineage) plus optional DS-authored sections (Intended Use · Out of Scope · Sign-off) from
+``config.decisions.card``. This is the human-reviewable deliverable a data scientist signs off on.
 """
 
 from __future__ import annotations
@@ -37,9 +38,13 @@ def gen_model_card(
     eval_report: Optional[dict] = None,
     *,
     target: str = "churn_next_30d",
+    authored: Optional[dict] = None,
 ) -> str:
-    """Render the markdown model card. ``eval_report`` adds the held-out Performance/Calibration/Slices."""
+    """Render the markdown model card. ``eval_report`` adds the held-out Performance/Calibration/Slices;
+    ``authored`` (from ``config.decisions.card``) adds the DS-written Intended Use / Out of Scope /
+    Known Failure Modes / Sign-off sections (epic #17 / S5)."""
     mc = model_card
+    auth = authored or {}
     em = (eval_report or {}).get("metrics", {})
     fam = mc.get("model_family", "model")
     flags = [
@@ -56,6 +61,12 @@ def gen_model_card(
         "in the next cycle. Higher score = higher churn risk.",
         "",
     ]
+
+    # Intended Use / Out of Scope (DS-authored, from config.decisions.card)
+    if auth.get("intended_use"):
+        lines += ["## Intended Use", "", str(auth["intended_use"]), ""]
+    if auth.get("out_of_scope"):
+        lines += ["## Out of Scope", "", str(auth["out_of_scope"]), ""]
 
     # Training Data
     lines += [
@@ -137,6 +148,8 @@ def gen_model_card(
     ]
     for caveat in mc.get("caveats") or []:
         lines += [f"- {caveat}"]
+    for fm in auth.get("known_failure_modes") or []:
+        lines += [f"- {fm}"]
     lines += [""]
 
     # Lineage
@@ -149,5 +162,8 @@ def gen_model_card(
     if eval_report is not None:
         lines += [f"- evaluated on {eval_report.get('n_rows', 'n/a')} held-out rows"]
     lines += [""]
+
+    if auth.get("sign_off"):
+        lines += ["## Sign-off", "", str(auth["sign_off"]), ""]
 
     return "\n".join(lines).rstrip() + "\n"

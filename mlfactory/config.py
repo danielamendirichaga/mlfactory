@@ -127,6 +127,17 @@ class FeatureDecisions(BaseModel):
     recipe_path: str | None = None  # the feature-spec YAML, when approach != "skip"
 
 
+class CardDecisions(BaseModel):
+    """DS-authored model-card sections — the card is authored, not just generated (epic #17 / S5)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    intended_use: str | None = None
+    out_of_scope: str | None = None
+    known_failure_modes: list[str] = []
+    sign_off: str | None = None
+
+
 class DecisionRecord(BaseModel):
     """The DS's confirmed choices for a run. Gates WRITE here; stages READ here.
 
@@ -143,6 +154,7 @@ class DecisionRecord(BaseModel):
     policy: PolicyDecisions = Field(default_factory=PolicyDecisions)
     monitoring: MonitoringDecisions = Field(default_factory=MonitoringDecisions)
     features: FeatureDecisions = Field(default_factory=FeatureDecisions)
+    card: CardDecisions = Field(default_factory=CardDecisions)
     caveats: list[str] = []
 
 
