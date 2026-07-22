@@ -18,8 +18,17 @@ from mlfactory.config import ChurnConfig
 from mlfactory.compute.model import MODELS, feature_columns, train_model
 
 # Stability gate (the credit-risk convention): small AUC drop + a stable score distribution.
+# These are the DEFAULTS; the live values come from config.decisions.modeling (epic #17 / S3).
 _MAX_AUC_DROP = 0.05
 _MAX_SCORE_PSI = 0.2
+
+# primary_metric name (config.decisions.modeling) → the compare-row key that holds it
+_METRIC_KEY = {
+    "auc": "holdout_auc",
+    "pr_auc": "holdout_pr_auc",
+    "ks": "holdout_ks",
+    "top_decile_lift": "holdout_lift",
+}
 
 
 def compare_models(
@@ -32,10 +41,14 @@ def compare_models(
     """Fit each model on ``train_df``, score ``holdout_df``, and return a ranked comparison.
 
     Each row: held-out AUC / KS / top-decile lift / PR-AUC, the train→holdout ``auc_drop`` and
-    ``ks_drop``, the ``score_psi`` (train→holdout), and a ``stable`` flag. Sorted by held-out AUC.
+    ``ks_drop``, the ``score_psi`` (train→holdout), a ``stable`` flag, and ``primary`` (the value of
+    the DS's chosen ``primary_metric``). Rows are sorted by ``primary`` (default: held-out AUC), and
+    the stability bars come from ``config.decisions.modeling`` (default: the module constants).
     """
     models = models or list(MODELS)
     cols = config.columns
+    dec = config.decisions.modeling
+    metric_key = _METRIC_KEY[dec.primary_metric]
     numeric, categorical = feature_columns(train_df, config)
     feats = numeric + categorical
     y_tr = (train_df[cols.target_col] == cols.positive_value).astype(int).to_numpy()
@@ -52,19 +65,22 @@ def compare_models(
         auc_drop = round(tr_auc - ho_auc, 4)
         score_psi = round(m.psi(p_tr, p_ho), 4)
 
-        rows.append(
-            {
-                "model": model,
-                "holdout_auc": ho_auc,
-                "holdout_ks": ho_ks,
-                "holdout_lift": m.top_decile_lift(y_ho, p_ho),
-                "holdout_pr_auc": m.average_precision(y_ho, p_ho),
-                "auc_drop": auc_drop,
-                "ks_drop": round(tr_ks - ho_ks, 4),
-                "score_psi": score_psi,
-                "stable": bool(auc_drop < _MAX_AUC_DROP and score_psi < _MAX_SCORE_PSI),
-            }
-        )
+        row = {
+            "model": model,
+            "holdout_auc": ho_auc,
+            "holdout_ks": ho_ks,
+            "holdout_lift": m.top_decile_lift(y_ho, p_ho),
+            "holdout_pr_auc": m.average_precision(y_ho, p_ho),
+            "auc_drop": auc_drop,
+            "ks_drop": round(tr_ks - ho_ks, 4),
+            "score_psi": score_psi,
+            # stability bars from the decision record (defaults = the module constants)
+            "stable": bool(auc_drop < dec.max_auc_drop and score_psi < dec.max_score_psi),
+        }
+        # the DS's chosen primary metric drives ranking + selection (default: auc)
+        row["primary_metric"] = dec.primary_metric
+        row["primary"] = row[metric_key]
+        rows.append(row)
 
-    rows.sort(key=lambda r: r["holdout_auc"], reverse=True)
+    rows.sort(key=lambda r: r["primary"], reverse=True)
     return rows

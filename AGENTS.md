@@ -82,6 +82,9 @@ architecture rule, key file, or gotcha changed.
 - Feature engineering: the **FE gate** (`config.decisions.features.approach`, default `skip`) picks skip
   (train on the raw split) vs. recipe/hybrid → `engineer-features` (registry incl. `ratio`/`interaction`)
   → `train --engineered` (features passed through, not re-scaled — the recipe owns it). (epic #17 / S2)
+- Train & select regime: `compare`/`recommend_model` rank+select on `config.decisions.modeling.primary_metric`
+  (default auc) with the record's stability bars; `train` reads `modeling.{imbalance,calibrate,tune}`
+  (CLI flags force-on). Set them at the Model gate. (epic #17 / S3)
 - Generic core hardcodes no domain columns — mark never-features via `config.columns.exclude_columns`.
 - Synthetic data only; `data/` is gitignored; never commit real customer data / PII.
 - `mlfactory` = the tool name; the bundled domain is B2B SaaS account churn (NOT streaming/fintech).

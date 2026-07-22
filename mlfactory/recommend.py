@@ -63,7 +63,7 @@ def recommend_split(config: ChurnConfig) -> Recommendation:
 
 
 def recommend_model(compare_rows: list[dict]) -> Recommendation:
-    """Prefer the most *stable* model, not just the highest held-out AUC."""
+    """Prefer the most *stable* model, ranked on the DS's chosen primary metric (not just peak AUC)."""
     if not compare_rows:
         return Recommendation(
             gate="model",
@@ -71,15 +71,20 @@ def recommend_model(compare_rows: list[dict]) -> Recommendation:
             rationale="run `compare` on a shortlist first",
             action={"model": None},
         )
+
+    def _score(r: dict) -> float:
+        return float(r.get("primary", r["holdout_auc"]))
+
+    metric = compare_rows[0].get("primary_metric", "auc")
     stable = [r for r in compare_rows if r.get("stable")]
     pool = stable or compare_rows
-    pick = max(pool, key=lambda r: r["holdout_auc"])
-    top = max(compare_rows, key=lambda r: r["holdout_auc"])
-    why = f"held-out AUC {pick['holdout_auc']:.3f}, stable (train→holdout drop {pick['auc_drop']:+.3f})"
+    pick = max(pool, key=_score)
+    top = max(compare_rows, key=_score)
+    why = f"{metric} {_score(pick):.3f}, stable (train→holdout AUC drop {pick['auc_drop']:+.3f})"
     if top["model"] != pick["model"]:
         why += (
-            f"; {top['model']} scores higher ({top['holdout_auc']:.3f}) but overfits "
-            f"(drop {top['auc_drop']:+.3f}) — select on stability, not peak AUC"
+            f"; {top['model']} scores higher ({_score(top):.3f}) but overfits "
+            f"(drop {top['auc_drop']:+.3f}) — select on stability, not peak {metric}"
         )
     return Recommendation(
         gate="model",

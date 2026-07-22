@@ -23,7 +23,7 @@ at every genuine judgment moment**, surface the evidence + a deterministic recom
 | **Target** | start of EDA | confirm the target column + task (from config) | the config + the target class balance |
 | **Leakage exclusion** | after the leakage scan | the columns to drop (posterior / derived / perfect) | `leakage-scan` tiers + the scanner's escalation |
 | **Feature approach** | before feature engineering | **skip** (train on raw) · **recipe** · **hybrid**, and which transforms | signal strength (max \|corr\|), skew, collinearity, missingness + the transform registry |
-| **Model choice** | after `compare` | the family to ship — **stability over peak AUC** | the ranked `compare` table (held-out AUC + drop + score-PSI) |
+| **Model choice** | after `compare` | the family to ship (**stability over peak metric**) + the **primary metric** · imbalance · calibration | the ranked `compare` table (primary metric + train→holdout drop + score-PSI) |
 | **Ship go/no-go** | after `evaluate` | ship / do-not-ship on the held-out card | AUC ≥ floor and ECE ≤ bar (`recommend_ship`) |
 
 At each gate, spawn `mlfactory-advisor` to surface the recommendation, present it, and **wait for the
@@ -37,6 +37,10 @@ the "dropped" leak** — the `eda-exploration` artifact recording the decision d
 `train` sees. For the **Feature approach** gate, persist the choice with
 `mlfactory record-decision --key features.approach --value <skip|recipe|hybrid>`; `/mlfactory-run`
 branches on it (skip → train on the raw split; recipe/hybrid → `engineer-features` → `train --engineered`).
+For the **Model choice** gate, persist the regime with `mlfactory record-decision --key
+modeling.primary_metric --value <auc|pr_auc|ks|top_decile_lift>` (plus `modeling.imbalance` /
+`modeling.calibrate` / `modeling.tune`): `compare` ranks + `recommend_model` selects by the primary
+metric with the record's stability bars, and `train` honors the imbalance / calibration / tune regime.
 
 ## Why this exists
 A model that looks great in-sample and quietly collapses in production is the failure these gates
