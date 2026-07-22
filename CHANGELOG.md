@@ -2,6 +2,18 @@
 
 Append-only log of what changed and when. Newest first.
 
+## 2026-07-21 — #34 Guided config setup (/mlfactory-setup + configure) — the input-boundary gate
+The one config piece without a tested writer was the source + schema (data path, target, column map).
+- Added `config.write_source_schema` + the `configure` CLI (`--source-kind` / `--path` / `--dsn`+`--table`,
+  `--target` / `--positive-value` / `--id-col`, optional `--date-col` / `--value-col` / `--features`):
+  writes a validated source+schema, **preserving any existing `decisions:` block**. Fails cleanly on a
+  bad mapping (e.g. `file` source with no path).
+- Added the `.claude/commands/mlfactory-setup.md` playbook: interview the DS for their data + target,
+  call `configure`, then `validate` — chat-to-config becomes a designed, deterministic gate, not
+  free-hand YAML editing.
+- Verified live: `configure` on a real parquet → a clean churn.yaml → `validate` reports USABLE.
+  +6 tests (279 total green); ruff + mypy clean. **Closes #34.**
+
 ## 2026-07-21 — #25 (S6) Downstream reads the decision record — epic #17 complete
 Epic #17, slice 6 (closes #25) — the final slice. The domain layer's economics now come from the record.
 - `simulate-policy` and `policy-contrast` take `save_rate` / `offer_cost` / `budget` from

@@ -94,6 +94,8 @@ architecture rule, key file, or gotcha changed.
 - Downstream: `simulate-policy` / `policy-contrast` read `config.decisions.policy` (save_rate / offer_cost
   / budget / targeting); `monitor` reads `config.decisions.monitoring.drift_threshold`. CLI flags override.
   (epic #17 / S6 — **epic complete**: every back-half stage surfaces + propagates its decisions.)
+- Config setup: `mlfactory configure` (tested writer for source+schema) + the `/mlfactory-setup` playbook
+  (interview → configure → validate) point mlfactory at your data — don't hand-edit source/schema. (#34)
 - Generic core hardcodes no domain columns — mark never-features via `config.columns.exclude_columns`.
 - Synthetic data only; `data/` is gitignored; never commit real customer data / PII.
 - `mlfactory` = the tool name; the bundled domain is B2B SaaS account churn (NOT streaming/fintech).
