@@ -2,6 +2,22 @@
 
 Append-only log of what changed and when. Newest first.
 
+## 2026-07-22 — #36 Honesty fixes surfaced by running on real (Telco) data
+The agent, running on a real dataset, flagged three "claims-X-does-Y" defects. On verification, two were
+real and one was a misdiagnosis:
+- **Stratified split (real fix).** The `random` strategy was *plain* random (prevalence drifted across
+  train/val/test) though the split gate advertised "stratified". It now stratifies on the target
+  (per-class bucketing); `time`/`grouped` are unchanged.
+- **Model-card provenance (real fix).** `model_card.py` hardcoded *"synthetic B2B SaaS domain"* into every
+  card — false on real data. Now conditional on `source.kind` (recorded on the `ModelCard`): synthetic →
+  the synthetic caveat; real → an honest "held-out split of the provided data" caveat.
+- **Logistic L1 vs L2 (false alarm → a useful decision).** The reported "silently L2" was wrong: sklearn
+  1.9 uses `l1_ratio` (1.0=L1) and deprecates `penalty`, so the original `l1_ratio=1.0` was already L1, as
+  documented (verified: 4/12 zero coefs). No bug — but regularization is now a decision
+  (`config.decisions.modeling.penalty` = l1/l2/elasticnet → `l1_ratio`, default l1 = prior behavior);
+  bumped `max_iter` to 5000 so saga+L1 converges without warnings.
+- +5 tests (284 total green); ruff + mypy clean. (Closes #36)
+
 ## 2026-07-21 — #34 Guided config setup (/mlfactory-setup + configure) — the input-boundary gate
 The one config piece without a tested writer was the source + schema (data path, target, column map).
 - Added `config.write_source_schema` + the `configure` CLI (`--source-kind` / `--path` / `--dsn`+`--table`,

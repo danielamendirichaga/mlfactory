@@ -82,6 +82,9 @@ class ModelingDecisions(BaseModel):
     imbalance: Literal["none", "smote"] = "none"
     calibrate: bool = False
     tune: Literal["none", "grid", "optuna"] = "none"
+    penalty: Literal["l1", "l2", "elasticnet"] = (
+        "l1"  # logistic regularization; l1 default (= prior behavior), now a per-dataset decision
+    )
     max_auc_drop: float = 0.05  # compare._MAX_AUC_DROP (stability gate)
     max_score_psi: float = 0.2  # compare._MAX_SCORE_PSI (stability gate)
 

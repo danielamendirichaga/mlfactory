@@ -96,6 +96,9 @@ architecture rule, key file, or gotcha changed.
   (epic #17 / S6 — **epic complete**: every back-half stage surfaces + propagates its decisions.)
 - Config setup: `mlfactory configure` (tested writer for source+schema) + the `/mlfactory-setup` playbook
   (interview → configure → validate) point mlfactory at your data — don't hand-edit source/schema. (#34)
+- Logistic regularization is `config.decisions.modeling.penalty` (l1/l2/elasticnet → sklearn `l1_ratio`,
+  default l1). The `random` split **stratifies** on the target. The model card's "synthetic domain" caveat
+  is conditional on `source.kind` — real-data cards don't claim synthetic. (#36)
 - Generic core hardcodes no domain columns — mark never-features via `config.columns.exclude_columns`.
 - Synthetic data only; `data/` is gitignored; never commit real customer data / PII.
 - `mlfactory` = the tool name; the bundled domain is B2B SaaS account churn (NOT streaming/fintech).

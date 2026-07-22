@@ -137,12 +137,18 @@ def gen_model_card(
                 ]
             lines += [""]
 
-    # Limitations
+    # Limitations — the provenance line is conditional on the actual data source (not hardcoded)
+    provenance = (
+        "- Trained/evaluated on the **synthetic B2B SaaS reference domain** — not real production "
+        "performance."
+        if mc.get("source_kind", "synthetic") == "synthetic"
+        else "- Evaluated on a held-out split of the provided data — re-validate on a fresh cohort "
+        "before relying on it in production."
+    )
     lines += [
         "## Limitations",
         "",
-        "- Trained/evaluated on the **synthetic B2B SaaS reference domain** — not real production "
-        "performance.",
+        provenance,
         "- The score is a risk ranking, not a calibrated business decision; pair it with the policy layer.",
         "- A point-in-time snapshot; monitor for drift before relying on it next quarter.",
     ]

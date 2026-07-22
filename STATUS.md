@@ -8,9 +8,10 @@ pipeline was resolving via silent defaults. **Epic #17 is complete** — S0–S6
 back-half stage now surfaces its DS decisions at a gate and reads them from a typed `config.decisions`
 record instead of a hardcoded default (defaults reproduce the pre-#17 behavior). **Also added the
 input-boundary gate** — `/mlfactory-setup` + the tested `configure` command (guided, validated config
-setup, #34).
+setup, #34). **Validated end-to-end on a real dataset** (Telco churn, held-out AUC 0.83), which
+surfaced + fixed self-labeling defects (#36).
 
-**Health:** 279 tests green · ruff + mypy clean · CLI + live pipeline verified · Python 3.11 / uv.
+**Health:** 284 tests green · ruff + mypy clean · CLI + live pipeline verified · Python 3.11 / uv.
 
 ## Done
 - **Bootstrap** — lifted churnpilot's tested deterministic core into `mlfactory` (renamed), fresh repo. (`4ca941c`)
@@ -77,6 +78,10 @@ setup, #34).
 - **#34 — guided config setup** — the input-boundary gate: `configure` (tested writer for source+schema,
   validated, preserves the decisions block) + the `/mlfactory-setup` playbook (interview the DS → write →
   validate). Chat-to-config is now deterministic, not free-hand YAML. +6 tests (279 total). **Closes #34.**
+- **#36 — honesty fixes (from the real-data run).** Stratified the `random` split (was plain random);
+  made the model card's provenance caveat conditional on `source.kind` (was hardcoded "synthetic"); added
+  a `penalty` modeling decision (l1/l2/elasticnet). NB: the reported logistic-L2 bug was a **false alarm** —
+  sklearn 1.9's `l1_ratio=1.0` was already L1 (verified empirically). +5 tests (284 total). **Closes #36.**
 
 ## In progress
 - None — **epic #17 (surface + propagate DS decisions) is complete** (#19–#25 all closed).

@@ -89,6 +89,21 @@ def _bucketed(df: pd.DataFrame, key: np.ndarray, r_train: float, r_val: float):
     return train, val, test
 
 
+def _stratified_bucketed(df: pd.DataFrame, y: np.ndarray, r_train: float, r_val: float, seed: int):
+    """Random split that preserves the class balance across train/val/test (stratify on the target).
+
+    Each class is ranked on its own random key and spread evenly across [0,1), so ``_bucketed`` hands
+    ~``r_train`` of *every* class to train, etc. — deterministic for a given seed.
+    """
+    rng = np.random.default_rng(seed)
+    key = np.empty(len(df))
+    for cls in np.unique(y):
+        pos = np.where(y == cls)[0]
+        ranks = rng.random(len(pos)).argsort().argsort()
+        key[pos] = (ranks + 0.5) / max(len(pos), 1)
+    return _bucketed(df, key, r_train, r_val)
+
+
 def split_dataset(
     df: pd.DataFrame,
     config: ChurnConfig,
@@ -118,8 +133,9 @@ def split_dataset(
         id_map = dict(zip(ids, np.random.default_rng(seed).random(len(ids))))
         train, val, test = _bucketed(df, df[cols.id_col].map(id_map).to_numpy(), r_train, r_val)
     elif strategy == "random":
-        key = np.random.default_rng(seed).random(len(df))
-        train, val, test = _bucketed(df, key, r_train, r_val)
+        # stratify on the target so the class balance is preserved across train/val/test
+        y = (df[cols.target_col] == cols.positive_value).to_numpy()
+        train, val, test = _stratified_bucketed(df, y, r_train, r_val, seed)
     else:
         raise SplitError(f"unknown strategy {strategy!r} (use time | grouped | random)")
 
