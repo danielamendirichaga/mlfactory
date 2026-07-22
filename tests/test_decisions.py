@@ -25,7 +25,6 @@ def _template(tmp_path: Path) -> Path:
 
 def test_defaults_match_current_hardcoded_behavior() -> None:
     from mlfactory import recommend
-    from mlfactory.compute import evaluate
     from mlfactory.compute.compare import _MAX_AUC_DROP, _MAX_SCORE_PSI
     from mlfactory.domains.saas import monitor
 
@@ -35,11 +34,9 @@ def test_defaults_match_current_hardcoded_behavior() -> None:
     assert d.modeling.max_score_psi == _MAX_SCORE_PSI
     # today's selection metric is held-out AUC
     assert d.modeling.primary_metric == "auc"
-    # evaluate operating threshold + ship bar + drift bar (their function defaults)
-    assert (
-        d.evaluation.threshold
-        == inspect.signature(evaluate.evaluate_model).parameters["threshold"].default
-    )
+    # evaluate operating threshold: the record is now the source (was evaluate_model's 0.5 default, S4)
+    assert d.evaluation.threshold == 0.5
+    # ship bar + drift bar still match their function defaults
     ship = inspect.signature(recommend.recommend_ship).parameters
     assert d.evaluation.min_auc == ship["min_auc"].default
     assert d.evaluation.max_ece == ship["max_ece"].default

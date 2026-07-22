@@ -85,6 +85,9 @@ architecture rule, key file, or gotcha changed.
 - Train & select regime: `compare`/`recommend_model` rank+select on `config.decisions.modeling.primary_metric`
   (default auc) with the record's stability bars; `train` reads `modeling.{imbalance,calibrate,tune}`
   (CLI flags force-on). Set them at the Model gate. (epic #17 / S3)
+- Evaluate & ship: `evaluate` reads the operating threshold + segments from `config.decisions.evaluation`
+  (CLI `--threshold` overrides); `recommend_ship` judges the recorded `min_auc`/`max_ece`. `record-decision`
+  JSON-parses values, so list decisions work (`--value '["plan_tier"]'`). Set at the Ship gate. (epic #17 / S4)
 - Generic core hardcodes no domain columns — mark never-features via `config.columns.exclude_columns`.
 - Synthetic data only; `data/` is gitignored; never commit real customer data / PII.
 - `mlfactory` = the tool name; the bundled domain is B2B SaaS account churn (NOT streaming/fintech).

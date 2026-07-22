@@ -2,6 +2,17 @@
 
 Append-only log of what changed and when. Newest first.
 
+## 2026-07-21 — #23 (S4) Evaluate & ship read the decision record
+Epic #17, slice 4 (closes #23). The operating point, the slices, and the ship bar now come from the
+record instead of a silent 0.5 / hardcoded segments / a baked-in 0.65-0.10.
+- `evaluate_model` takes `threshold` + `segment_cols` from `config.decisions.evaluation` when not passed
+  explicitly (the CLI `--threshold` is now opt-in; the report records the resolved threshold).
+- `recommend_ship` judges against the recorded `min_auc`/`max_ece` (the `run` copilot passes them).
+- `set_decision` now JSON-parses its value, so list/number/bool decisions work (`--value '["plan_tier"]'`,
+  `0.3`, `true`); bare words still fall through as strings.
+- Verified live: recorded `threshold=0.15` shows as `@0.15`, recorded `segment_cols=["plan_tier"]` drops
+  the region slice. +6 tests (264 total green); ruff + mypy clean. **Closes #23.**
+
 ## 2026-07-21 — #22 (S3) Train & select read the decision record
 Epic #17, slice 3 (closes #22). The model-selection and training knobs now come from the record instead
 of being hardcoded or hidden.

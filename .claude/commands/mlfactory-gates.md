@@ -24,7 +24,7 @@ at every genuine judgment moment**, surface the evidence + a deterministic recom
 | **Leakage exclusion** | after the leakage scan | the columns to drop (posterior / derived / perfect) | `leakage-scan` tiers + the scanner's escalation |
 | **Feature approach** | before feature engineering | **skip** (train on raw) · **recipe** · **hybrid**, and which transforms | signal strength (max \|corr\|), skew, collinearity, missingness + the transform registry |
 | **Model choice** | after `compare` | the family to ship (**stability over peak metric**) + the **primary metric** · imbalance · calibration | the ranked `compare` table (primary metric + train→holdout drop + score-PSI) |
-| **Ship go/no-go** | after `evaluate` | ship / do-not-ship on the held-out card | AUC ≥ floor and ECE ≤ bar (`recommend_ship`) |
+| **Ship go/no-go** | after `evaluate` | ship / do-not-ship on the held-out card | AUC ≥ `min_auc` and ECE ≤ `max_ece` **from the record** (`recommend_ship`); the operating threshold + segments come from the record too |
 
 At each gate, spawn `mlfactory-advisor` to surface the recommendation, present it, and **wait for the
 human**.
@@ -41,6 +41,9 @@ For the **Model choice** gate, persist the regime with `mlfactory record-decisio
 modeling.primary_metric --value <auc|pr_auc|ks|top_decile_lift>` (plus `modeling.imbalance` /
 `modeling.calibrate` / `modeling.tune`): `compare` ranks + `recommend_model` selects by the primary
 metric with the record's stability bars, and `train` honors the imbalance / calibration / tune regime.
+For the **Ship** gate, persist `mlfactory record-decision --key evaluation.threshold --value <p>` (plus
+`evaluation.min_auc` / `evaluation.max_ece` / `evaluation.segment_cols`): `evaluate` reads the operating
+threshold + segments from the record, and `recommend_ship` judges against the recorded criteria.
 
 ## Why this exists
 A model that looks great in-sample and quietly collapses in production is the failure these gates

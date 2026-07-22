@@ -5,9 +5,9 @@
 (#10–#12, epic #5), and the Optuna hp-search + `hist_gbm` depth (#4). A new epic (**#17**) now hardens
 the human-in-the-loop coverage: *surface + propagate the DS decisions* that the back half of the
 pipeline was resolving via silent defaults. **S1 (leak-drop), S0 (decision record), S2 (feature
-engineering), and S3 (train & select) shipped**; S4–S6 queued.
+engineering), S3 (train & select), and S4 (evaluate & ship) shipped**; S5–S6 queued.
 
-**Health:** 258 tests green · ruff + mypy clean · CLI + live pipeline verified · Python 3.11 / uv.
+**Health:** 264 tests green · ruff + mypy clean · CLI + live pipeline verified · Python 3.11 / uv.
 
 ## Done
 - **Bootstrap** — lifted churnpilot's tested deterministic core into `mlfactory` (renamed), fresh repo. (`4ca941c`)
@@ -59,10 +59,14 @@ engineering), and S3 (train & select) shipped**; S4–S6 queued.
   `train` honors the recorded imbalance / calibration / tune regime (CLI flags force-on). Fixes:
   ranked-on-AUC-not-the-chosen-metric, hardcoded 0.05/0.2, hidden smote/calibrate. +6 tests (258 total).
   **Closes #22.** (Epic #17)
+- **#23 (S4) — evaluate & ship read the record** — `evaluate` takes the operating threshold + segments
+  from `config.decisions.evaluation` (was a silent `0.5` / hardcoded `plan_tier,region`), and
+  `recommend_ship` judges the recorded `min_auc`/`max_ece` (was hardcoded `0.65/0.10`). `record-decision`
+  now JSON-parses its value, so list decisions (segment_cols) work. +6 tests (264 total). **Closes #23.** (Epic #17)
 
 ## In progress
-- **Epic #17 — surface + propagate DS decisions.** S1 (#20) + S0 (#19) + S2 (#21) + S3 (#22) done.
-  Remaining: **S4** (#23, evaluate) · **S5** (#24, model card) · **S6** (#25, downstream).
+- **Epic #17 — surface + propagate DS decisions.** S1 (#20) + S0 (#19) + S2 (#21) + S3 (#22) + S4 (#23)
+  done. Remaining: **S5** (#24, model card) · **S6** (#25, downstream).
 
 ## Next up
 **The original roadmap (#1–#12) is closed** — #1–#3 (core spine + feature stage + CLI/docs) · #7 (reorg/decouple) ·
