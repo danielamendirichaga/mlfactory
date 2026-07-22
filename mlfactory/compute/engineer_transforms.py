@@ -1,4 +1,4 @@
-"""The deterministic feature-transform registry — 8 ``(fit, apply)`` pairs.
+"""The deterministic feature-transform registry — 10 ``(fit, apply)`` pairs.
 
 **Fit-on-train / apply-outward** is the leakage-safe invariant: stateful transforms
 (``standard_scaler``, ``one_hot``, ``impute``, ``target_encoding``) learn their params on the
@@ -26,6 +26,12 @@ def _one(spec: FeatureTransform) -> str:
     if len(spec.inputs) != 1:
         raise TransformError(f"{spec.type} expects exactly 1 input, got {spec.inputs}")
     return spec.inputs[0]
+
+
+def _two(spec: FeatureTransform) -> tuple[str, str]:
+    if len(spec.inputs) != 2:
+        raise TransformError(f"{spec.type} expects exactly 2 inputs, got {spec.inputs}")
+    return spec.inputs[0], spec.inputs[1]
 
 
 def _require(df: pd.DataFrame, col: str, spec: FeatureTransform) -> None:
@@ -295,6 +301,57 @@ class TargetEncoding(Transform):
         return [spec.output_column or f"{_one(spec)}_te"]
 
 
+class Ratio(Transform):
+    """``input[0] / input[1]`` — a rate/intensity feature (e.g. usage per seat). Stateless.
+
+    Division-safe: a zero denominator yields ``params.on_zero`` (default 0.0), keeping the output
+    finite/model-ready. A null in either input propagates (and is caught by the model-ready check),
+    so impute the inputs first if they can be missing.
+    """
+
+    @staticmethod
+    def apply(df, spec, params):
+        num, den = _two(spec)
+        _require(df, num, spec)
+        _require(df, den, spec)
+        out = spec.output_column or f"{num}_per_{den}"
+        fill = float(spec.params.get("on_zero", 0.0))
+        n = df[num].astype(float).to_numpy()
+        d = df[den].astype(float).to_numpy()
+        with np.errstate(divide="ignore", invalid="ignore"):
+            r = np.where(d != 0.0, n / d, fill)
+        df = df.copy()
+        df[out] = r
+        return df
+
+    @staticmethod
+    def produced(spec, params):
+        num, den = _two(spec)
+        return [spec.output_column or f"{num}_per_{den}"]
+
+
+class Interaction(Transform):
+    """Product of the input columns — a multiplicative interaction term (>= 2 inputs). Stateless."""
+
+    @staticmethod
+    def apply(df, spec, params):
+        if len(spec.inputs) < 2:
+            raise TransformError(f"interaction expects >= 2 inputs, got {spec.inputs}")
+        for c in spec.inputs:
+            _require(df, c, spec)
+        out = spec.output_column or "_x_".join(spec.inputs)
+        prod = df[spec.inputs[0]].astype(float).copy()
+        for c in spec.inputs[1:]:
+            prod = prod * df[c].astype(float)
+        df = df.copy()
+        df[out] = prod
+        return df
+
+    @staticmethod
+    def produced(spec, params):
+        return [spec.output_column or "_x_".join(spec.inputs)]
+
+
 TRANSFORM_REGISTRY: dict[str, type[Transform]] = {
     "drop_columns": DropColumns,
     "log_transform": LogTransform,
@@ -304,4 +361,6 @@ TRANSFORM_REGISTRY: dict[str, type[Transform]] = {
     "date_parts": DateParts,
     "temporal_diff": TemporalDiff,
     "target_encoding": TargetEncoding,
+    "ratio": Ratio,
+    "interaction": Interaction,
 }

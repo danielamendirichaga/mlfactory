@@ -115,6 +115,17 @@ class MonitoringDecisions(BaseModel):
     drift_threshold: float = 0.25  # monitor_drift default PSI bar
 
 
+class FeatureDecisions(BaseModel):
+    """Feature-engineering approach — the FE gate's decision (epic #17 / S2b)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    approach: Literal["skip", "recipe", "hybrid"] = (
+        "skip"  # skip = train on the raw split (default)
+    )
+    recipe_path: str | None = None  # the feature-spec YAML, when approach != "skip"
+
+
 class DecisionRecord(BaseModel):
     """The DS's confirmed choices for a run. Gates WRITE here; stages READ here.
 
@@ -130,6 +141,7 @@ class DecisionRecord(BaseModel):
     evaluation: EvaluationDecisions = Field(default_factory=EvaluationDecisions)
     policy: PolicyDecisions = Field(default_factory=PolicyDecisions)
     monitoring: MonitoringDecisions = Field(default_factory=MonitoringDecisions)
+    features: FeatureDecisions = Field(default_factory=FeatureDecisions)
     caveats: list[str] = []
 
 

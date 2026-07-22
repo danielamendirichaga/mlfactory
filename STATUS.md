@@ -4,10 +4,10 @@
 **mlfactory's core is complete and shipped** — the deterministic core (#1–#3), the full agent layer
 (#10–#12, epic #5), and the Optuna hp-search + `hist_gbm` depth (#4). A new epic (**#17**) now hardens
 the human-in-the-loop coverage: *surface + propagate the DS decisions* that the back half of the
-pipeline was resolving via silent defaults. **S1 (leak-drop), S0 (decision record), and S2a
-(feature-spec→train) shipped**; S2b + S3–S6 queued.
+pipeline was resolving via silent defaults. **S1 (leak-drop), S0 (decision record), and S2 (feature
+engineering — feature-spec→train + ratio/interaction + the FE gate) shipped**; S3–S6 queued.
 
-**Health:** 241 tests green · ruff + mypy clean · CLI + live pipeline verified · Python 3.11 / uv.
+**Health:** 252 tests green · ruff + mypy clean · CLI + live pipeline verified · Python 3.11 / uv.
 
 ## Done
 - **Bootstrap** — lifted churnpilot's tested deterministic core into `mlfactory` (renamed), fresh repo. (`4ca941c`)
@@ -50,11 +50,14 @@ pipeline was resolving via silent defaults. **S1 (leak-drop), S0 (decision recor
   (model-ready): a passthrough-style preprocessor imputes leftover nulls + one-hots surviving
   categoricals but does **not** re-scale (the recipe owns preprocessing); `ModelCard.engineered`. An
   EDA-informed recipe now reaches the model (verified end-to-end). +8 tests (241 total). (Part of #21)
+- **#21 (S2b) — construction transforms + the FE gate** — `ratio` (division-safe) + `interaction`
+  transforms so a recipe can build signal (usage-per-seat, activity×actions), and the **FE gate**
+  (`config.decisions.features.approach`, default `skip`) surfaced in the playbooks — skip (raw) vs.
+  recipe/hybrid. +11 tests (252 total). **Closes #21** (S2 complete). (Epic #17)
 
 ## In progress
-- **Epic #17 — surface + propagate DS decisions.** S1 (#20) + S0 (#19) + **S2a** (#21, feature-spec→train)
-  done. Remaining: **S2b** (#21, construction transforms + FE gate) · **S3** (#22, train/select) ·
-  **S4** (#23, evaluate) · **S5** (#24, model card) · **S6** (#25, downstream).
+- **Epic #17 — surface + propagate DS decisions.** S1 (#20) + S0 (#19) + S2 (#21) done. Remaining:
+  **S3** (#22, train/select) · **S4** (#23, evaluate) · **S5** (#24, model card) · **S6** (#25, downstream).
 
 ## Next up
 **The original roadmap (#1–#12) is closed** — #1–#3 (core spine + feature stage + CLI/docs) · #7 (reorg/decouple) ·

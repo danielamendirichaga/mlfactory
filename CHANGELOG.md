@@ -2,6 +2,18 @@
 
 Append-only log of what changed and when. Newest first.
 
+## 2026-07-21 — #21 (S2b) Construction transforms + the FE gate — S2 complete
+Epic #17, slice 2b (closes #21). Now a recipe can *build* signal, and the feature-engineering decision
+is a real gate instead of an improvised step.
+- Added `ratio` (`input[0]/input[1]`, division-safe: zero denominator → `on_zero`, default 0.0) and
+  `interaction` (product of >= 2 inputs) to the transform registry (now 10). A null input propagates and
+  is caught by the model-ready postcondition — impute first if inputs can be missing.
+- Added `FeatureDecisions` to the decision record (`config.decisions.features.approach`, default `skip`
+  = train on the raw split); surfaced the **FE gate** in `/mlfactory-gates` (now five gates),
+  `/mlfactory-run` (branches skip vs. recipe/hybrid), and `/mlfactory-eda` (recommends the approach).
+- Verified end-to-end: a `revenue_per_seat` (ratio) + `activity_x_actions` (interaction) recipe reaches
+  the model. +11 tests (252 total green); ruff + mypy clean. **Closes #21 — S2 complete.**
+
 ## 2026-07-21 — #21 (S2a) Feature-spec → train — an engineered recipe reaches the model
 Epic #17, slice 2a. Before this, `train` only read the raw split, so `engineer-features` produced a
 `feature-spec` that never touched the model. Now `train --engineered` trains on the engineered output.

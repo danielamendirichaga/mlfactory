@@ -40,5 +40,6 @@ does; you spawn subagents and exercise judgment on their facts.
 ## Report
 The target, the **leakage verdict** (which columns to drop and why — e.g. the planted
 `cancel_page_visits_30d` posterior signal the deterministic scan tiered as `near_perfect` and you
-escalate to `drop`), the ranked families with reasons, the baseline, the split strategy, and the
-`eda-exploration` artifact path.
+escalate to `drop`), the ranked families with reasons, the baseline, the split strategy, a
+**feature-approach recommendation** for the FE gate (skip vs. recipe — lean recipe when signal is low /
+features are skewed / a `ratio` or `interaction` would add signal), and the `eda-exploration` artifact path.
