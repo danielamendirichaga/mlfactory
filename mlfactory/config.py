@@ -321,6 +321,50 @@ def set_decision(path: str | Path, key: str, value: str) -> DecisionRecord:
     return record
 
 
+def write_source_schema(
+    path: str | Path,
+    *,
+    source: SourceConfig,
+    columns: ColumnMap,
+) -> ChurnConfig:
+    """Write the ``source`` + ``schema`` blocks to a churn.yaml (validated), preserving an existing
+    ``decisions:`` block. The tested writer behind ``mlfactory configure`` / ``/mlfactory-setup`` — so the
+    data mapping is set through validation, not free-hand YAML. Returns the written config; raises
+    :class:`ConfigError` if the result can't be read back.
+    """
+    path = Path(path)
+    decisions = DecisionRecord()
+    if path.exists():
+        try:
+            decisions = load_config(path).decisions
+        except ConfigError:
+            decisions = DecisionRecord()
+    cfg = ChurnConfig(
+        source=source, columns=columns, decisions=decisions
+    )  # validates the combination
+    body = yaml.safe_dump(
+        {
+            "source": source.model_dump(exclude_none=True),
+            "schema": columns.model_dump(exclude_none=True),
+        },
+        sort_keys=False,
+        default_flow_style=False,
+    )
+    text = (
+        "# mlfactory config — written by `mlfactory configure`.\n"
+        "# Data mapping: edit via `configure`. Decisions: `record-decision` / `exclude-columns`.\n\n"
+        + body
+    )
+    if decisions != DecisionRecord():
+        text = _write_decisions_block(text, decisions.model_dump())
+    try:  # never write a config we can't read back
+        ChurnConfig.model_validate(yaml.safe_load(text))
+    except (ValidationError, yaml.YAMLError) as exc:
+        raise ConfigError(f"Refusing to write an invalid config to {path}:\n{exc}") from exc
+    path.write_text(text)
+    return cfg
+
+
 CONFIG_TEMPLATE = """\
 # mlfactory config — declares your data source and column mapping.
 # Nothing is hardcoded; edit this to point mlfactory at your data.

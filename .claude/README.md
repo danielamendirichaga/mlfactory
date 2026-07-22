@@ -15,6 +15,7 @@ Built on Claude Code primitives:
 
 ## What's here (the agent layer — #10 → #12, complete)
 **Orchestrator playbooks (`commands/`):**
+- `mlfactory-setup.md` — `/mlfactory-setup`, the input-boundary gate: interview → `configure` → `validate` (#34).
 - `mlfactory-run.md` — `/mlfactory-run`, the deterministic pipeline orchestrator (#10).
 - `mlfactory-eda.md` — `/mlfactory-eda`, the EDA & modeling-design stage (#11).
 - `mlfactory-gates.md` — the human-in-the-loop gates: AI proposes, human decides (#12).

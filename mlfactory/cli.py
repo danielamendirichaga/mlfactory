@@ -7,7 +7,8 @@ Copilot: advise (pre-flight recommendations) and run (interactive, checkpointed 
 Factory: engineer-features, leakage-scan, validate-artifact, export-schemas, gen-model-card
 (most stage commands take --json). Decisions: record-decision / decisions read+write the config's
 decision record (metric/threshold/economics/…); exclude-columns records a confirmed leakage-drop so
-split/train honor it. The agent layer lives in .claude/ (see .claude/README.md).
+split/train honor it. Setup: init scaffolds churn.yaml; configure writes a validated source+schema
+(the /mlfactory-setup gate). The agent layer lives in .claude/ (see .claude/README.md).
 """
 
 from __future__ import annotations
@@ -165,6 +166,81 @@ def decisions(
         typer.echo(json.dumps(record.model_dump()))
         return
     typer.echo(yaml.safe_dump({"decisions": record.model_dump()}, sort_keys=False).rstrip())
+
+
+@app.command()
+def configure(
+    config: str = typer.Option("churn.yaml", "--config", help="Path to write the churn.yaml."),
+    source_kind: str = typer.Option(
+        "file", "--source-kind", help="file | postgres | sqlite | synthetic."
+    ),
+    path: Optional[str] = typer.Option(None, "--path", help="Data file path (source-kind=file)."),
+    dsn: Optional[str] = typer.Option(None, "--dsn", help="DB DSN (postgres/sqlite)."),
+    table: Optional[str] = typer.Option(None, "--table", help="DB table (postgres/sqlite)."),
+    target: str = typer.Option(..., "--target", help="Target column to predict."),
+    positive_value: str = typer.Option(
+        "1", "--positive-value", help="Target value that means the event happened."
+    ),
+    id_col: str = typer.Option(..., "--id-col", help="Unique id column."),
+    date_col: Optional[str] = typer.Option(
+        None, "--date-col", help="Date column (enables time-split + drift)."
+    ),
+    value_col: Optional[str] = typer.Option(
+        None, "--value-col", help="Customer-value column (enables the policy simulator)."
+    ),
+    features: Optional[str] = typer.Option(
+        None, "--features", help="Comma-separated feature list; omit for 'auto'."
+    ),
+    json_out: bool = typer.Option(False, "--json", help="Emit a machine-readable JSON summary."),
+) -> None:
+    """Write source + schema to churn.yaml (validated) — the guided/tested config setup.
+
+    Prefer this (or the /mlfactory-setup playbook) over hand-editing the YAML: it validates the data
+    mapping and fails cleanly if the source/target are inconsistent. Then run `validate`.
+    """
+    import json
+
+    from pydantic import ValidationError
+
+    from mlfactory.config import ColumnMap, ConfigError, SourceConfig, write_source_schema
+
+    try:
+        pv = json.loads(positive_value)  # "1" -> 1, "true" -> True; bare words stay strings
+    except (json.JSONDecodeError, ValueError):
+        pv = positive_value
+    feats: object = [f.strip() for f in features.split(",")] if features else "auto"
+
+    try:
+        source = SourceConfig(kind=source_kind, path=path, dsn=dsn, table=table)  # type: ignore[arg-type]
+        columns = ColumnMap(
+            id_col=id_col,
+            target_col=target,
+            positive_value=pv,
+            date_col=date_col,
+            value_col=value_col,
+            features=feats,  # type: ignore[arg-type]
+        )
+        write_source_schema(config, source=source, columns=columns)
+    except (ValidationError, ConfigError) as exc:
+        typer.echo(str(exc))
+        raise typer.Exit(code=1) from exc
+
+    if json_out:
+        typer.echo(
+            json.dumps(
+                {
+                    "command": "configure",
+                    "config": str(config),
+                    "source": source.model_dump(exclude_none=True),
+                    "schema": columns.model_dump(exclude_none=True),
+                }
+            )
+        )
+        return
+    typer.echo(f"Wrote {config}  (source: {source_kind}, target: {target}, id: {id_col})")
+    typer.echo(
+        f"  Next: `mlfactory validate --config {config}`, then `/mlfactory-setup` → `/mlfactory-eda`."
+    )
 
 
 @app.command()

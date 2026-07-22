@@ -6,9 +6,11 @@
 the human-in-the-loop coverage: *surface + propagate the DS decisions* that the back half of the
 pipeline was resolving via silent defaults. **Epic #17 is complete** — S0–S6 all shipped: every
 back-half stage now surfaces its DS decisions at a gate and reads them from a typed `config.decisions`
-record instead of a hardcoded default (defaults reproduce the pre-#17 behavior).
+record instead of a hardcoded default (defaults reproduce the pre-#17 behavior). **Also added the
+input-boundary gate** — `/mlfactory-setup` + the tested `configure` command (guided, validated config
+setup, #34).
 
-**Health:** 273 tests green · ruff + mypy clean · CLI + live pipeline verified · Python 3.11 / uv.
+**Health:** 279 tests green · ruff + mypy clean · CLI + live pipeline verified · Python 3.11 / uv.
 
 ## Done
 - **Bootstrap** — lifted churnpilot's tested deterministic core into `mlfactory` (renamed), fresh repo. (`4ca941c`)
@@ -72,6 +74,9 @@ record instead of a hardcoded default (defaults reproduce the pre-#17 behavior).
   `save_rate`/`offer_cost`/`budget` from `config.decisions.policy` and `monitor` takes the drift bar
   from `config.decisions.monitoring` (were silent `0.3`/`$5`/`none`/`0.25`); CLI flags override.
   +3 tests (273 total). **Closes #25 — epic #17 complete.** (Epic #17)
+- **#34 — guided config setup** — the input-boundary gate: `configure` (tested writer for source+schema,
+  validated, preserves the decisions block) + the `/mlfactory-setup` playbook (interview the DS → write →
+  validate). Chat-to-config is now deterministic, not free-hand YAML. +6 tests (279 total). **Closes #34.**
 
 ## In progress
 - None — **epic #17 (surface + propagate DS decisions) is complete** (#19–#25 all closed).
