@@ -18,6 +18,7 @@ env/
 
 # Data & artifacts — synthetic/generated; NEVER commit real customer data
 data/
+artifacts/
 reports/
 *.parquet
 *.pkl
@@ -29,7 +30,7 @@ reports/
 # Local working notes / scratch — kept out of the repo.
 local-notes/
 
-# Generated / local configs (scaffolded by `churnpilot init`)
+# Generated / local configs (scaffolded by `mlfactory init`)
 churn.yaml
 ab.yaml
 

@@ -182,6 +182,7 @@ See [`.claude/README.md`](.claude/README.md).
 ## Learn more
 
 - [`ml-factory-explained.md`](ml-factory-explained.md) — plain-language: what an "ML factory" is, for a non-specialist.
+- [`docs/running-with-claude-code.md`](docs/running-with-claude-code.md) — how to drive the pipeline with Claude Code (the two commands + the gates).
 - [`ml-factory-architecture.md`](ml-factory-architecture.md) — the full architecture blueprint (the design this repo implements).
 - [`docs/ADRs.md`](docs/ADRs.md) — why the load-bearing decisions were made (and where they reverse churnpilot's).
 - [`AGENTS.md`](AGENTS.md) · [`STATUS.md`](STATUS.md) · [`CHANGELOG.md`](CHANGELOG.md) — how the project works, where it stands, what changed.
