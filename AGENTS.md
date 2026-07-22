@@ -88,6 +88,9 @@ architecture rule, key file, or gotcha changed.
 - Evaluate & ship: `evaluate` reads the operating threshold + segments from `config.decisions.evaluation`
   (CLI `--threshold` overrides); `recommend_ship` judges the recorded `min_auc`/`max_ece`. `record-decision`
   JSON-parses values, so list decisions work (`--value '["plan_tier"]'`). Set at the Ship gate. (epic #17 / S4)
+- Model card: `train` propagates `config.decisions.caveats` onto the card; `gen-model-card --config`
+  adds DS-authored sections (`config.decisions.card`: intended_use / out_of_scope / known_failure_modes /
+  sign_off). The card is authored, not just generated. (epic #17 / S5)
 - Generic core hardcodes no domain columns — mark never-features via `config.columns.exclude_columns`.
 - Synthetic data only; `data/` is gitignored; never commit real customer data / PII.
 - `mlfactory` = the tool name; the bundled domain is B2B SaaS account churn (NOT streaming/fintech).

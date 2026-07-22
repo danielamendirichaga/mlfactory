@@ -417,6 +417,9 @@ def train_model(
         hyperparams=hyperparams,
         train_metrics=train_metrics,
         baseline_metrics=baseline_metrics,
+        caveats=list(
+            config.decisions.caveats
+        ),  # accumulated gate/EDA caveats → the model card (S5)
         parent_sha256=content_hash(train_df),
     )
     return estimator, card
