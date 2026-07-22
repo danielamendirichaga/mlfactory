@@ -1,11 +1,11 @@
 """Model training — the bounded menu, in a leakage-safe pipeline, with a baseline floor.
 
 A standard, leakage-safe modeling stack: a
-``ColumnTransformer`` fit on train only, L1 ``LogisticRegressionCV``, ccp-pruned trees, and
+``ColumnTransformer`` fit on train only, a ``LogisticRegressionCV`` (penalty L1/L2/elasticnet, a decision), ccp-pruned trees, and
 XGBoost tuned by ``GridSearchCV`` + ``StratifiedKFold`` — plus optional SMOTE (``imblearn``,
 train-folds only) and **isotonic calibration** (the piece a cost-based threshold assumes but never verifies).
 
-Menu: ``logistic`` (L1) · ``tree`` (pruned) · ``rf`` (bagging) · ``xgboost`` (boosting).
+Menu: ``logistic`` (L1/L2/elasticnet) · ``tree`` (pruned) · ``rf`` (bagging) · ``xgboost`` (boosting).
 Default = fast fixed hyperparameters; ``--tune`` runs the standard search. A majority-class
 baseline floor is always reported. Emits a :class:`ModelCard` artifact with lineage.
 
@@ -50,6 +50,7 @@ class ModelCard(ArtifactBase):
     calibrated: bool
     early_stopping: bool = False
     engineered: bool = False
+    source_kind: str = "synthetic"
     n_features: int
     features: list[str]
     hyperparams: dict
@@ -135,24 +136,29 @@ def _engineered_preprocessor(numeric: list[str], categorical: list[str]) -> Colu
     )
 
 
-def _estimator(model: str, seed: int, tune: bool):
+# Regularization via sklearn's non-deprecated l1_ratio (saga): 1.0 = L1, 0.0 = L2, 0.5 = elastic-net.
+_L1_RATIO = {"l1": 1.0, "l2": 0.0, "elasticnet": 0.5}
+
+
+def _estimator(model: str, seed: int, tune: bool, penalty: str = "l1"):
     if model == "logistic":
         from sklearn.linear_model import LogisticRegression, LogisticRegressionCV
 
-        if tune:  # L1 LogisticRegressionCV (l1_ratios=[1.0] = pure L1)
+        ratio = _L1_RATIO[penalty]
+        if tune:
             return LogisticRegressionCV(
                 Cs=np.logspace(-3, 3, 7),
                 cv=5,
                 scoring="neg_log_loss",
                 solver="saga",
-                l1_ratios=[1.0],
-                max_iter=3000,
+                l1_ratios=[ratio],
+                max_iter=5000,  # saga + L1 converges slower than L2
                 refit=True,
                 random_state=seed,
                 n_jobs=-1,
             )
         return LogisticRegression(
-            C=1.0, solver="saga", l1_ratio=1.0, max_iter=2000, random_state=seed
+            C=1.0, solver="saga", l1_ratio=ratio, max_iter=5000, random_state=seed
         )
     if model == "rf":
         from sklearn.ensemble import RandomForestClassifier
@@ -381,7 +387,7 @@ def train_model(
     elif model == "xgboost" and early_stopping:
         estimator, hyperparams = _fit_xgb_es(pre, train_df, config, numeric, categorical, seed)
     else:
-        est = _estimator(model, seed, tune)
+        est = _estimator(model, seed, tune, penalty=config.decisions.modeling.penalty)
         hyperparams = {k: v for k, v in est.get_params().items() if k in _HP_KEYS.get(model, [])}
         pipe = _assemble(pre, est, smote, seed)
         if calibrate:
@@ -412,6 +418,7 @@ def train_model(
         calibrated=calibrate,
         early_stopping=early_stopping,
         engineered=engineered,
+        source_kind=config.source.kind,
         n_features=len(numeric) + len(categorical),
         features=numeric + categorical,
         hyperparams=hyperparams,
