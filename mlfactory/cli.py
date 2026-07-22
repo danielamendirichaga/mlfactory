@@ -605,11 +605,17 @@ def simulate_policy_cmd(
     config: Path = typer.Option(
         Path("churn.yaml"), "--config", help="Path to the churn.yaml config."
     ),
-    save_rate: float = typer.Option(
-        0.3, "--save-rate", help="P(offer rescues a would-be churner)."
+    save_rate: Optional[float] = typer.Option(
+        None,
+        "--save-rate",
+        help="P(offer rescues a churner); default = config.decisions.policy.save_rate.",
     ),
-    offer_cost: float = typer.Option(5.0, "--offer-cost", help="Cost of one save-offer ($)."),
-    budget: Optional[float] = typer.Option(None, "--budget", help="Total offer budget ($)."),
+    offer_cost: Optional[float] = typer.Option(
+        None, "--offer-cost", help="Cost of one save-offer ($); default = ...policy.offer_cost."
+    ),
+    budget: Optional[float] = typer.Option(
+        None, "--budget", help="Total offer budget ($); default = ...policy.budget."
+    ),
     n_offers: Optional[int] = typer.Option(None, "--n-offers", help="Max number of offers."),
     report_out: Path = typer.Option(
         Path("data/policy-report.json"), "--report-out", help="Where to write the policy-report."
@@ -627,6 +633,15 @@ def simulate_policy_cmd(
     except ConfigError as exc:
         typer.echo(str(exc))
         raise typer.Exit(code=1) from exc
+
+    # Policy economics come from the decision record; explicit CLI flags override (S6).
+    pol = cfg.decisions.policy
+    if save_rate is None:
+        save_rate = pol.save_rate
+    if offer_cost is None:
+        offer_cost = pol.offer_cost
+    if budget is None:
+        budget = pol.budget
 
     est = load_model(model)
     df = pd.read_parquet(data)
@@ -714,7 +729,11 @@ def monitor(
     config: Path = typer.Option(
         Path("churn.yaml"), "--config", help="Path to the churn.yaml config."
     ),
-    threshold: float = typer.Option(0.25, "--threshold", help="PSI drift threshold for retrain."),
+    threshold: Optional[float] = typer.Option(
+        None,
+        "--threshold",
+        help="PSI drift bar; default = config.decisions.monitoring.drift_threshold.",
+    ),
     report_out: Path = typer.Option(
         Path("data/drift-report.json"), "--report-out", help="Where to write the drift-report."
     ),
@@ -723,6 +742,8 @@ def monitor(
     from mlfactory.domains.saas.monitor import monitor_drift
 
     cfg, df = _load(config)
+    if threshold is None:
+        threshold = cfg.decisions.monitoring.drift_threshold
     report = monitor_drift(df, cfg, threshold=threshold)
     report_out.parent.mkdir(parents=True, exist_ok=True)
     report.write_json(report_out)
@@ -859,9 +880,17 @@ def policy_contrast_cmd(
     config: Path = typer.Option(
         Path("churn.yaml"), "--config", help="Path to the churn.yaml config."
     ),
-    save_rate: float = typer.Option(0.3, "--save-rate", help="save_rate for the risk strategy."),
-    offer_cost: float = typer.Option(5.0, "--offer-cost", help="Cost of one save-offer ($)."),
-    budget: Optional[float] = typer.Option(None, "--budget", help="Total offer budget ($)."),
+    save_rate: Optional[float] = typer.Option(
+        None,
+        "--save-rate",
+        help="Risk-strategy save_rate; default = config.decisions.policy.save_rate.",
+    ),
+    offer_cost: Optional[float] = typer.Option(
+        None, "--offer-cost", help="Cost of one save-offer ($); default = ...policy.offer_cost."
+    ),
+    budget: Optional[float] = typer.Option(
+        None, "--budget", help="Total offer budget ($); default = ...policy.budget."
+    ),
     n_offers: Optional[int] = typer.Option(None, "--n-offers", help="Max number of offers."),
     report_out: Path = typer.Option(
         Path("data/policy-contrast.json"), "--report-out", help="Where to write the contrast."
@@ -880,6 +909,14 @@ def policy_contrast_cmd(
     except ConfigError as exc:
         typer.echo(str(exc))
         raise typer.Exit(code=1) from exc
+
+    pol = cfg.decisions.policy  # policy economics from the record; CLI flags override (S6)
+    if save_rate is None:
+        save_rate = pol.save_rate
+    if offer_cost is None:
+        offer_cost = pol.offer_cost
+    if budget is None:
+        budget = pol.budget
 
     risk = load_model(model)
     up = load_uplift(uplift_model)
@@ -1060,12 +1097,13 @@ def run(
     show(recommend_policy(cfg))
     policy_report = None
     if cfg.columns.value_col is not None:
-        save_rate, offer_cost, budget = 0.3, 5.0, None
+        pol = cfg.decisions.policy  # economics seeded from the record (S6)
+        save_rate, offer_cost, budget = pol.save_rate, pol.offer_cost, pol.budget
         if not yes:
-            save_rate = float(typer.prompt("    save_rate", default=0.3))
-            offer_cost = float(typer.prompt("    offer_cost ($)", default=5.0))
-            raw = typer.prompt("    budget ($, blank = unlimited)", default="")
-            budget = float(raw) if str(raw).strip() else None
+            save_rate = float(typer.prompt("    save_rate", default=save_rate))
+            offer_cost = float(typer.prompt("    offer_cost ($)", default=offer_cost))
+            raw = typer.prompt("    budget ($, blank = unlimited)", default=str(pol.budget or ""))
+            budget = float(raw) if str(raw).strip() else pol.budget
         policy_report = simulate_policy(
             est, test_df, cfg, save_rate=save_rate, offer_cost=offer_cost, budget=budget
         )
