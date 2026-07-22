@@ -65,6 +65,8 @@ TransformType = Literal[
     "temporal_diff",
     "drop_columns",
     "impute",
+    "ratio",
+    "interaction",
 ]
 
 

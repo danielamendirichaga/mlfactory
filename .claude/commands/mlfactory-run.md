@@ -30,24 +30,31 @@ the user to run setup (see `AGENTS.md`).
 1. **Data** — `generate --out data/panel.parquet` (synthetic), then `validate --config churn.yaml`
    (must report USABLE; halt otherwise).
 2. **Split** — `split --config churn.yaml --strategy time --out-dir data/splits` (leakage-guarded).
-3. **Feature engineering** — `engineer-features --train data/splits/train.parquet
-   --val data/splits/val.parquet --test data/splits/test.parquet --spec docs/example-feature-spec.yaml
-   --output-dir data/features --json`. **Then gate:** spawn `mlfactory-artifact-validator` on
-   `data/features/feature-spec.md` (`--walk-lineage --probe-output`).
-4. **Train** — `train --train data/features/train.parquet --config churn.yaml --model logistic
-   --engineered --model-out data/model.pkl --json` (trains on step 3's engineered output; `--engineered`
-   passes its model-ready features through without re-scaling). *(Precondition: any leakage drop confirmed
-   in `/mlfactory-eda` must already be in `config.exclude_columns` via `mlfactory exclude-columns`, or
-   training silently includes the leak.)*
-5. **Evaluate** — `evaluate --model data/model.pkl --test data/features/test.parquet --config churn.yaml
-   --report-out data/eval-report.json` (score on the engineered test split).
+3. **Feature approach — GATE** (`/mlfactory-gates`): pause for **skip** (train on the raw split) ·
+   **recipe** · **hybrid**, and persist it (`mlfactory record-decision --key features.approach
+   --value <…>`; read `config.decisions.features.approach`, default `skip`). Then:
+   - **skip** → no feature engineering; proceed to step 4 on the raw split.
+   - **recipe / hybrid** → `engineer-features --train data/splits/train.parquet
+     --val data/splits/val.parquet --test data/splits/test.parquet --spec <recipe.yaml>
+     --output-dir data/features --json`, **then gate:** spawn `mlfactory-artifact-validator` on
+     `data/features/feature-spec.md` (`--walk-lineage --probe-output`). Recipes can use `ratio` and
+     `interaction` transforms — build the signal a low-|corr| problem needs.
+4. **Train** — **skip:** `train --train data/splits/train.parquet --config churn.yaml --model logistic
+   --model-out data/model.pkl --json`. **recipe/hybrid:** `train --train data/features/train.parquet
+   --config churn.yaml --model logistic --engineered --model-out data/model.pkl --json`. *(Precondition:
+   any leakage drop confirmed in `/mlfactory-eda` must already be in `config.exclude_columns` via
+   `mlfactory exclude-columns`, or training silently includes the leak.)*
+5. **Evaluate** — score the matching test split (`data/splits/test.parquet` for skip,
+   `data/features/test.parquet` for recipe/hybrid): `evaluate --model data/model.pkl --test <…>
+   --config churn.yaml --report-out data/eval-report.json`.
 6. **Model card** — `gen-model-card --card data/model.card.json --eval data/eval-report.json
    --output data/model-card.md`.
 
-> **Feature flow (S2a, #21).** The model stage trains on the **engineered** dataset (step 3's
-> `data/features/*`) via `train --engineered`, which passes the recipe's model-ready features through
-> without re-scaling (the recipe owns preprocessing). Skipping `engineer-features` and training on the
-> raw split stays valid — the per-family preprocessor handles raw data — so choose per run.
+> **Feature flow (S2b, #21).** The **FE gate** picks the approach (`config.decisions.features.approach`,
+> default `skip`): **skip** trains on the raw split (the per-family preprocessor handles it); **recipe** /
+> **hybrid** run `engineer-features` and train on the engineered output via `train --engineered` (features
+> passed through, no re-scaling — the recipe owns it). Recipes can use `ratio` / `interaction` transforms
+> to construct signal a low-|corr| problem needs.
 >
 > **Leakage note.** With `features: auto` on the SaaS reference domain, training includes the planted
 > `cancel_page_visits_30d` trap — the model scores a giveaway AUC ≈ 1.0, and `train` prints a leakage
