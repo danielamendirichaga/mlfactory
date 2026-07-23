@@ -1,7 +1,7 @@
 # Running mlfactory with Claude Code
 
 mlfactory splits the ML job in two: **Claude decides and judges; a tested CLI does all the math; typed
-artifacts connect the stages.** In Claude Code you drive the whole pipeline with **two slash commands**
+artifacts connect the stages.** In Claude Code you drive the whole pipeline with **three slash commands**
 and make the real calls at each **gate**.
 
 ## Setup (once)
@@ -14,14 +14,16 @@ claude                          # open Claude Code in the project
 The `/mlfactory-*` commands live in [`.claude/`](../.claude/README.md), so they exist **only inside this
 folder** (not on the claude.ai website). If the CLI isn't installed yet, see the [README](../README.md) quickstart.
 
-## Run it (two commands)
+## Run it (three commands)
 
 | Type this | Claude does | You do |
 |---|---|---|
+| `/mlfactory-setup` | Interviews you for your data + target, writes a validated `churn.yaml` | Answer: data path, target, id/date/value columns *(skip for the synthetic demo)* |
 | `/mlfactory-eda` | Profiles the data, scans for leakage, ranks model families, picks a split strategy | Confirm/override the leak drops, the split, and the model shortlist |
-| `/mlfactory-run` | Runs the pipeline end-to-end (split → features → train → evaluate → card), validating each artifact | Confirm the ship decision; read the model card |
+| `/mlfactory-run` | Runs the pipeline end-to-end (split → features → train → evaluate → card), validating each artifact | Confirm the feature approach + the ship decision; read the model card |
 
-Run **`/mlfactory-eda` first** (it catches the leakage), then **`/mlfactory-run`**.
+For your own data, run **`/mlfactory-setup` first**; on the built-in synthetic demo, skip it and start
+with **`/mlfactory-eda`**, then **`/mlfactory-run`**.
 
 ## The one rule
 

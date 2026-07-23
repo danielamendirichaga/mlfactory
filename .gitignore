@@ -19,6 +19,7 @@ env/
 # Data & artifacts — synthetic/generated; NEVER commit real customer data
 data/
 artifacts/
+schemas/
 reports/
 *.parquet
 *.pkl

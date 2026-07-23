@@ -11,8 +11,10 @@ number is reproducible, every artifact is lineage-verified, and the LLM never si
 for a computation. Full blueprint: `ml-factory-architecture.md`. Build plan: `REUSE-MAP.md`.
 
 **Status:** MVP deterministic core, bootstrapped from churnpilot (`../AI&DS_lab`) and generalized.
-Currently **216 tests green, ruff + mypy clean**. **mlfactory is complete** — the deterministic core,
-the full agent layer (#10–#12, `.claude/`), and Optuna hp-search + `hist_gbm` (#4). See `STATUS.md`.
+Currently **284 tests green, ruff + mypy clean**; validated end-to-end on real data (Telco churn,
+held-out AUC 0.83). On top of the deterministic core + agent layer, the **decision epic (#17)** makes
+every DS decision explicit — surfaced at a gate, recorded in a typed `config.decisions`, read by every
+stage — plus a guided config-setup gate (`/mlfactory-setup` + `configure`, #34). See `STATUS.md`.
 
 ## Architecture & conventions
 - **Layering — core ← domain ← app** (dependency direction, enforced by discipline):

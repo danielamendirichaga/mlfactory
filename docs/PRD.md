@@ -51,8 +51,10 @@ playbooks + specialist subagents · L1 data/inference adapters · L6 bundle dist
 Multi-agent orchestration (ADR-001), under `.claude/`: the `/mlfactory-run` + `/mlfactory-eda`
 orchestrator playbooks; judgment subagents (`leakage-scanner`, `model-recommender`, `column-profiler`)
 + no-retry CLI-wrappers; and the human-in-the-loop gates (`/mlfactory-gates`, `mlfactory-advisor`) —
-**AI proposes, human decides**. The deterministic-tool boundary (ADR-002) and adversarial-verify
-discipline throughout.
+**AI proposes, human decides**. Every gate decision persists to a typed **decision record**
+(`config.decisions`) that downstream stages read (epic #17, S0–S6); `/mlfactory-setup` is the
+input-boundary gate — interview → validated config (#34). The deterministic-tool boundary (ADR-002) and
+adversarial-verify discipline throughout.
 
 ## 7. The reference domain (B2B SaaS account churn)
 A deterministic synthetic account-month panel (seats/MRR/product-usage/logins/discounts/support) with
@@ -62,9 +64,10 @@ retention-offer uplift layer — so every stage can be exercised end-to-end on s
 ## 8. Non-goals
 - Not general AutoML; a well-understood fixed DAG, not a free-roaming agent.
 - Not a production MLOps platform (though the heavy contract tier is a clean bolt-on toward one).
-- No real customer data / PII — the reference domain is synthetic.
+- No real customer data / PII **in the repo** — the bundled reference domain is synthetic (the tool itself runs on your own data via `configure`).
 
 ## 9. Requirements → issues (all closed)
 Contracts/CLI spine (#1, #3) · feature stage (#2) · reorg/decouple (#7) · compute depth (#4) · agent
-layer (#10–#12, epic #5). Bundle distribution (#6) dropped as out of scope; MCP adapters deferred.
-Live state: [`../STATUS.md`](../STATUS.md).
+layer (#10–#12, epic #5). **Decision epic (#17, S0–S6): surface + propagate every DS decision.** Guided
+config-setup (#34). Honesty fixes from the real-data run (#36). Bundle distribution (#6) dropped;
+MCP adapters deferred. Live state: [`../STATUS.md`](../STATUS.md).

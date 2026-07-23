@@ -7,7 +7,7 @@ Turn a dataset into a trained, validated, documented model through a pipeline of
 where **every number is reproducible, every artifact is lineage-verified, and the LLM never silently
 substitutes for a computation.**
 
-*Python 3.11+ · 216 tests green · ruff + mypy clean · MIT · synthetic data only (no PII).*
+*Python 3.11+ · 284 tests green · ruff + mypy clean · MIT · runs on your own data or a bundled synthetic domain.*
 
 New here and want the ideas before the code? Read the plain-language intro:
 [**`ml-factory-explained.md`**](ml-factory-explained.md).
@@ -48,7 +48,8 @@ mlfactory's answer is a strict **division of labor** that makes mistakes hard to
 **Reach for it when** you want an auditable, reproducible data→model path; when leakage-safety,
 typed contracts, or clean hand-off between steps matter; or as a **reference architecture** for the
 "agent + tested CLI + typed artifacts" pattern. **It is not** general AutoML or a production MLOps
-platform — it's a rigorously-built, fully-tested reference implementation on a synthetic domain.
+platform — it's a rigorously-built, fully-tested factory for tabular binary-classification (a bundled
+synthetic domain, or point it at your own data).
 
 ---
 
@@ -93,6 +94,10 @@ point: the factory surfaces the leak instead of laundering it into a great-looki
 model card renders 8 sections — Purpose · Training Data · Features · Performance · Calibration · Slices ·
 Limitations · Lineage.
 
+**And it's not just the demo:** the same pipeline runs on real data — validated end-to-end on the public
+[Telco Customer Churn](https://www.kaggle.com/datasets/blastchar/telco-customer-churn) dataset (held-out
+**AUC 0.83**, a genuine result), with the model card honestly describing its *real-data* provenance.
+
 ---
 
 ## Quickstart
@@ -103,7 +108,7 @@ Requires [uv](https://docs.astral.sh/uv/) and Python 3.11+.
 uv venv --python 3.11 .venv
 uv pip install --python .venv -e .
 uv pip install --python .venv pytest ruff mypy types-PyYAML
-.venv/bin/pytest -q                     # 216 tests, green
+.venv/bin/pytest -q                     # 284 tests, green
 ```
 
 Then run the whole pipeline — it works straight from `init` with **zero data setup** (the default
@@ -120,7 +125,12 @@ mlfactory gen-model-card --card data/model.card.json --eval data/eval.json --out
 
 Every capability is one command; `--json` gives machine output for scripting; `validate-artifact`
 re-checks any artifact's lineage and on-disk contents. Full command map: [`AGENTS.md`](AGENTS.md).
-Prefer to let the LLM drive? The agent layer's `/mlfactory-run` playbook orchestrates the same CLI.
+
+**Your own data:** point mlfactory at a file/DB with `mlfactory configure …` (or the guided
+`/mlfactory-setup` playbook) instead of the synthetic default. **DS decisions** — the metric, operating
+threshold, feature approach, ship bar, policy economics — are recorded with `mlfactory record-decision`
+and read by every stage, so a call made at a gate actually propagates. Prefer to let the LLM drive? The
+`/mlfactory-run` playbook orchestrates the same CLI.
 
 ---
 
@@ -131,11 +141,13 @@ splitter, a standalone feature-engineering stage (fit-on-train / apply-outward),
 baseline floor and a stability-based selection gate, held-out evaluation, and a seeded Optuna
 hyper-parameter search — all behind typed, lineage-tracked artifacts and `validate-artifact`.
 
-**The agent layer (`.claude/`)** — the orchestration. Per-stage **playbooks** (`/mlfactory-run`,
-`/mlfactory-eda`) that spawn narrow **specialist subagents**: judgment agents (leakage-scanner,
-column-profiler, model-recommender) and no-retry CLI-wrappers, with human-in-the-loop **gates** where
-*AI proposes and the human decides*. The playbook *is* the program — there is no compiled orchestrator.
-See [`.claude/README.md`](.claude/README.md).
+**The agent layer (`.claude/`)** — the orchestration. Per-stage **playbooks** (`/mlfactory-setup`,
+`/mlfactory-eda`, `/mlfactory-run`) that spawn narrow **specialist subagents** (leakage-scanner,
+column-profiler, model-recommender, no-retry CLI-wrappers). Its spine is **human-in-the-loop gates** —
+*AI proposes with a deterministic recommendation, the human decides* — at every real judgment call
+(target · leakage · feature approach · model · ship). Each decision is written to a **typed decision
+record** (`config.decisions`) that downstream stages read, so a call at a gate actually changes what the
+tool computes. The playbook *is* the program — no compiled orchestrator. See [`.claude/README.md`](.claude/README.md).
 
 ---
 
@@ -149,7 +161,7 @@ See [`.claude/README.md`](.claude/README.md).
 | [`mlfactory/`](mlfactory) | App wiring — `config.py`, the Typer CLI (`cli.py`), `model_card.py`, reporting. |
 | [`.claude/`](.claude/README.md) | The **agent layer** — orchestrator playbooks + specialist subagents. |
 | [`docs/`](docs) | [`PRD.md`](docs/PRD.md) (product requirements) + [`ADRs.md`](docs/ADRs.md) (the load-bearing design decisions). |
-| [`tests/`](tests) | 216 tests — metric properties, artifact-lineage round-trips, split guards, a CLI E2E. |
+| [`tests/`](tests) | 284 tests — metric properties, artifact-lineage round-trips, split guards, decision-record + gate coverage, a CLI E2E. |
 | [`ml-factory-architecture.md`](ml-factory-architecture.md) | The full **design blueprint** this repo implements. |
 
 ---
@@ -164,7 +176,13 @@ See [`.claude/README.md`](.claude/README.md).
   ROC/PR-AUC, log-loss, calibration/ECE) reimplemented from public methods and property-unit-tested.
 - **LLM orchestration done responsibly** — agents are markdown playbooks + narrow subagents over a
   tested CLI; the deterministic-tool boundary means *no number is ever reasoned out in a prompt*.
-- **Software discipline** — 216 tests, ruff + mypy clean, pydantic v2 contracts, a layered
+- **AI proposes, the human decides** — every judgment call (target · leakage · features · model · ship)
+  is surfaced at a gate with a deterministic recommendation and written to a typed decision record the
+  downstream stages read; defaults are behaviour-preserving, so the gates add control without surprise.
+- **Rigor that survives contact with real data** — validated on a real dataset (Telco churn), where the
+  agent's adversarial checks surfaced genuine defects *and* verification caught a false alarm before it
+  shipped — the point of separating judgment from tested computation.
+- **Software discipline** — 284 tests, ruff + mypy clean, pydantic v2 contracts, a layered
   architecture (core ← domain ← app), and issue-driven delivery with recorded ADRs.
 
 ---
@@ -176,13 +194,14 @@ See [`.claude/README.md`](.claude/README.md).
 - **Bootstrapped from the author's own [churnpilot](https://github.com/danielamendirichaga/churnpilot)**
   — a churn/retention tool built to the same thesis (single-agent). mlfactory generalizes its tested
   core into a domain-agnostic factory and adds the heavy contract tier + the multi-agent layer.
-- **Synthetic data only.** The B2B SaaS reference domain is generated from a fixed seed. No real
-  customer data or PII, ever; the reported numbers are a *reference-domain demo*, not a production claim.
+- **No data in the repo.** The bundled B2B SaaS reference domain is generated from a fixed seed, and run
+  outputs are gitignored — no real customer data or PII is ever committed. Point the tool at your own data
+  via `configure`; the synthetic numbers above are a *reference-domain demo*, not a production claim.
 
 ## Learn more
 
 - [`ml-factory-explained.md`](ml-factory-explained.md) — plain-language: what an "ML factory" is, for a non-specialist.
-- [`docs/running-with-claude-code.md`](docs/running-with-claude-code.md) — how to drive the pipeline with Claude Code (the two commands + the gates).
+- [`docs/running-with-claude-code.md`](docs/running-with-claude-code.md) — how to drive the pipeline with Claude Code (setup → eda → run, and the gates).
 - [`ml-factory-architecture.md`](ml-factory-architecture.md) — the full architecture blueprint (the design this repo implements).
 - [`docs/ADRs.md`](docs/ADRs.md) — why the load-bearing decisions were made (and where they reverse churnpilot's).
 - [`AGENTS.md`](AGENTS.md) · [`STATUS.md`](STATUS.md) · [`CHANGELOG.md`](CHANGELOG.md) — how the project works, where it stands, what changed.
